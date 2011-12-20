@@ -350,6 +350,8 @@ void CFootBotForaging::Rest() {
       m_pcLEDs->SetAllColors(CColor::GREEN);
       m_sStateData.State = SStateData::STATE_EXPLORING;
       m_sStateData.TimeRested = 0;
+      /* Log that we are now exploring. */
+      m_cTraceMessages.push_back(new CExploreTrace(m_unId));
    }
    else {
       ++m_sStateData.TimeRested;

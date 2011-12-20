@@ -147,7 +147,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     for (std::vector<CTraceMessage*>::iterator sit = cTraceMessages.begin();
 	 sit != cTraceMessages.end();
 	 ++sit) {
-      m_cOutput << (*sit)->Format(m_cSpace.GetSimulationClock())  << std::endl;
+      m_cOutput << (*sit)->Format(m_cSpace.GetSimulationClock()-1)  << std::endl;
     }
     cTraceMessages.clear();
 
@@ -163,6 +163,8 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     /* The foot-bot has a food item */
     if(sFoodData.HasFoodItem) {
       /* Check whether the foot-bot is in the nest */
+      // This is terribly wrong!  Dropping of the food item should be
+      // performed by the robot! --tc
       if(cPos.GetX() < -1.0f) {
 	/* Place a new food item on the ground */
 	/* m_cFoodPos[sFoodData.FoodItemIdx].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
@@ -171,6 +173,11 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	/* Drop the food item */
 	sFoodData.HasFoodItem = false;
 	++sFoodData.TotalFoodItems;
+
+	/* Log that the food was dropped. */
+	CDropItemTrace cDropTrace(cController.GetId());
+	m_cOutput << cDropTrace.Format(m_cSpace.GetSimulationClock()) << std::endl;
+
 	/* Increase the energy and food count */
 	m_nEnergy += m_unEnergyPerFoodItem;
 	++m_unCollectedFood;
@@ -191,7 +198,9 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	    advance(it, i);
 	    m_cFoodPos.erase(it);
 	    /* And add an entry to the log */
-	    m_cOutput << m_cSpace.GetSimulationClock() << ": PICKUP" << std::endl;
+	    CPickUpItemTrace cPickUpTrace(cController.GetId());
+	    m_cOutput << cPickUpTrace.Format(m_cSpace.GetSimulationClock()) << std::endl;
+
 	    /* The foot-bot is now carrying an item */
 	    sFoodData.HasFoodItem = true;
 	    /* The floor texture must be updated */
@@ -213,6 +222,8 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	    << m_unCollectedFood << "\t"
 	    << m_nEnergy << std::endl;
   */
+  /* Flush output */
+  m_cOutput << std::endl;
 }
 
 /****************************************/

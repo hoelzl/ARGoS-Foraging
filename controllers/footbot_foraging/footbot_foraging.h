@@ -238,6 +238,13 @@ public:
    }
 
    /*
+    * Returns the Id
+    */
+   inline UInt32 GetId() {
+     return m_unId;
+   }
+
+   /*
     * Returns the tracing messages for this robot
     */
    inline std::vector<CTraceMessage*>& GetTraceMessages() {
