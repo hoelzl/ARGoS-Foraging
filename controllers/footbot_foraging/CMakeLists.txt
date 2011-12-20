@@ -1,1 +1,2 @@
-add_library(footbot_foraging MODULE footbot_foraging.cpp)
+add_library(footbot_foraging MODULE trace_message.cpp footbot_foraging.cpp)
+

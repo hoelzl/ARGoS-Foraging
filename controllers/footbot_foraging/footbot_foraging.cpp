@@ -109,13 +109,21 @@ CFootBotForaging::CFootBotForaging() :
    m_pcProximity(NULL),
    m_pcLight(NULL),
    m_pcGround(NULL),
-   m_pcRNG(NULL) {}
+   m_pcRNG(NULL),
+   m_unLastCollisionLog(0) {}
+
+UInt32 CFootBotForaging::s_unIdCounter = 0;
 
 /****************************************/
 /****************************************/
 
 void CFootBotForaging::Init(TConfigurationNode& t_node) {
    try {
+     /*
+      * Set Id
+      */
+     m_unId = s_unIdCounter++;
+
       /*
        * Initialize sensors/actuators
        */
@@ -271,6 +279,7 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
    /* Clamp the speed so that it's not greater than MaxSpeed */
    Real fBaseAngularWheelSpeed = Min<Real>(fHeadingLength, m_sWheelTurningParams.MaxSpeed);
 
+   SWheelTurningParams::ETurningMechanism oldTurningMechanism = m_sWheelTurningParams.TurningMechanism;
    /* Turning state switching conditions */
    if(Abs(cHeadingAngle) <= m_sWheelTurningParams.NoTurnAngleThreshold) {
       /* No Turn, heading angle very small */
@@ -284,6 +293,9 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
            Abs(cHeadingAngle) > m_sWheelTurningParams.SoftTurnOnAngleThreshold) {
       /* Soft Turn, heading angle in between the two cases */
       m_sWheelTurningParams.TurningMechanism = SWheelTurningParams::SOFT_TURN;
+   }
+   if (oldTurningMechanism != m_sWheelTurningParams.TurningMechanism) {
+     m_cTraceMessages.push_back(new CCollisionTrace(m_unId));
    }
 
    /* Wheel speeds based on current turning state */

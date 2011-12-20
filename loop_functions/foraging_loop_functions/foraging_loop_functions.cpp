@@ -1,4 +1,5 @@
 #include "foraging_loop_functions.h"
+#include "../../controllers/footbot_foraging/trace_message.h"
 #include <argos2/simulator/simulator.h>
 #include <argos2/common/utility/configuration/argos_configuration.h>
 #include <argos2/common/utility/datatypes/any.h>
@@ -140,6 +141,16 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     /* Get handle to foot-bot entity and controller */
     CFootBotEntity& cFootBot = *any_cast<CFootBotEntity*>(it->second);
     CFootBotForaging& cController = dynamic_cast<CFootBotForaging&>(cFootBot.GetControllableEntity().GetController());
+
+    /* Write stored trace messages of the foot-bot */
+    std::vector<CTraceMessage*> cTraceMessages = cController.GetTraceMessages();
+    for (std::vector<CTraceMessage*>::iterator sit = cTraceMessages.begin();
+	 sit != cTraceMessages.end();
+	 ++sit) {
+      m_cOutput << (*sit)->Format(m_cSpace.GetSimulationClock())  << std::endl;
+    }
+    cTraceMessages.clear();
+
     /* Count how many foot-bots are in which state */
     if(! cController.IsResting()) ++unWalkingFBs;
     else ++unRestingFBs;
@@ -180,7 +191,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	    advance(it, i);
 	    m_cFoodPos.erase(it);
 	    /* And add an entry to the log */
-	    m_cOutput << "PICKUP: " << m_cSpace.GetSimulationClock() << std::endl;
+	    m_cOutput << m_cSpace.GetSimulationClock() << ": PICKUP" << std::endl;
 	    /* The foot-bot is now carrying an item */
 	    sFoodData.HasFoodItem = true;
 	    /* The floor texture must be updated */

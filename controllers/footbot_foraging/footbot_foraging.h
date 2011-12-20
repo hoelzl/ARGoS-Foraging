@@ -13,6 +13,8 @@
 /*
  * Include some necessary headers.
  */
+/* Support for generating runtime traces. */
+#include "trace_message.h"
 /* Definition of the CCI_Controller class. */
 #include <argos2/common/control_interface/ci_controller.h>
 /* Definition of the foot-bot wheel actuator */
@@ -44,7 +46,7 @@ using namespace argos;
 class CFootBotForaging : public CCI_Controller {
 
 public:
-
+  
    /*
     * This structure holds data about food collecting by the robots
     */
@@ -235,6 +237,13 @@ public:
       return m_sFoodData;
    }
 
+   /*
+    * Returns the tracing messages for this robot
+    */
+   inline std::vector<CTraceMessage*>& GetTraceMessages() {
+     return m_cTraceMessages;
+   }
+
 private:
 
    /*
@@ -297,6 +306,9 @@ private:
    /* Pointer to the foot-bot motor ground sensor */
    CCI_FootBotMotorGroundSensor* m_pcGround;
 
+   static UInt32 s_unIdCounter;
+   UInt32 m_unId;
+
    /* The random number generator */
    CARGoSRandom::CRNG* m_pcRNG;
 
@@ -315,6 +327,9 @@ private:
    SDiffusionParams m_sDiffusionParams;
    /* The food data */
    SFoodData m_sFoodData;
+
+   std::vector<CTraceMessage*> m_cTraceMessages;
+   UInt32 m_unLastCollisionLog;
 
 };
 
