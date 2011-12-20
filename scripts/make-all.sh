@@ -15,6 +15,8 @@ then
     ${SCRIPT_DIR}/make-makefiles.sh
 fi
 
+${SCRIPT_DIR}/make-tags.sh
+
 echo "Building foraging experiment."
 (cd ${BUILD_DIR} && make)
 

@@ -67,6 +67,7 @@
                   label="foraging_loop_functions">
     <foraging items="15"
               radius="0.1"
+	      food_drop_mean="100"
               energy_per_item="1000"
               energy_per_walking_robot="1"
               output="foraging.txt" />
