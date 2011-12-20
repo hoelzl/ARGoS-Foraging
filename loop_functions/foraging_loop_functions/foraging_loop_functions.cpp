@@ -50,7 +50,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
     GetNodeAttribute(tForaging, "output", m_strOutput);
     /* Open the file, erasing its contents */
     m_cOutput.open(m_strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-    m_cOutput << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
+    // m_cOutput << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
     /* Get energy gain per item collected */
     GetNodeAttribute(tForaging, "energy_per_item", m_unEnergyPerFoodItem);
     /* Get energy loss per walking robot */
@@ -75,7 +75,7 @@ void CForagingLoopFunctions::Reset() {
   m_cOutput.close();
   /* Open the file, erasing its contents */
   m_cOutput.open(m_strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-  m_cOutput << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
+  // m_cOutput << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
   /* Distribute uniformly the items in the environment */
   for(UInt32 i = 0; i < m_cFoodPos.size(); ++i) {
     m_cFoodPos[i].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
@@ -179,6 +179,8 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	    std::vector<CVector2>::iterator it = m_cFoodPos.begin();
 	    advance(it, i);
 	    m_cFoodPos.erase(it);
+	    /* And add an entry to the log */
+	    m_cOutput << "PICKUP: " << m_cSpace.GetSimulationClock() << std::endl;
 	    /* The foot-bot is now carrying an item */
 	    sFoodData.HasFoodItem = true;
 	    /* The floor texture must be updated */
@@ -193,11 +195,13 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
   /* Update energy expediture due to walking robots */
   m_nEnergy -= unWalkingFBs * m_unEnergyPerWalkingRobot;
   /* Output stuff to file */
+  /*
   m_cOutput << m_cSpace.GetSimulationClock() << "\t"
 	    << unWalkingFBs << "\t"
 	    << unRestingFBs << "\t"
 	    << m_unCollectedFood << "\t"
 	    << m_nEnergy << std::endl;
+  */
 }
 
 /****************************************/
