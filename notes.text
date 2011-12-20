@@ -1,0 +1,27 @@
+* Assign ID to each ant
+* Log format: CSV - time stamp, ant id, action type
+* Variant: no nest, ants rest after picking up food
+* Variant: Ant keeps moving but becomes inactive (cannot pick up food) for an exponentially distributed time 
+
+= Logging =
+
+* One single ant tagged
+* timestamp, action type
+* actions for single ant
+** ant starts in exploration mode
+** collision detected
+** food item picked up
+** food item deposited to nest => rest
+** back to exploring
+* global behavior
+** same information associated with ant id:
+** food item picked up
+** food item deposited to nest => rest
+** back to exploring
+* summary behavior
+** how many ants are performing these things
+** measurement every 100ms
+
+* 5 runs of 20min wall clock time
+* same number of ants but with bigger area (8x8m)
+
