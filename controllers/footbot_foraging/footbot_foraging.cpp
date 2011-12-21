@@ -243,7 +243,7 @@ CVector2 CFootBotForaging::CalculateVectorToLight() {
    }
    //  Otherwise, return zero 
    else {
-     LOGERR << "Cannot perceive light" << std::endl;
+     // LOGERR << "Cannot perceive light" << std::endl;
      return CVector2();
    }
 }
