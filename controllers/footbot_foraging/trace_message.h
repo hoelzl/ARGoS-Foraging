@@ -34,7 +34,7 @@ class CTraceMessage {
 
  protected:
   // Id of the robot doing the logging
-  UInt32 m_unRobotId;              
+  UInt32 RobotId;              
 };
 
 class CExploreTrace : public CTraceMessage {

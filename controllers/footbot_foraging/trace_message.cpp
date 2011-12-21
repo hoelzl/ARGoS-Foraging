@@ -5,14 +5,14 @@
 using namespace argos;
 
 CTraceMessage::CTraceMessage(UInt32 robotId) :
-  m_unRobotId(robotId) {}
+  RobotId(robotId) {}
 
 CTraceMessage::~CTraceMessage() {
 }
 
 std::string CTraceMessage::GetRobotId() {
   std::stringstream result;
-  result << m_unRobotId;
+  result << RobotId;
   return result.str();
 }
 
@@ -23,7 +23,7 @@ CExploreTrace::CExploreTrace(UInt32 robotId) :
 std::string CExploreTrace::Format(UInt32 time) {
   std::stringstream result;
   result << time << ","
-	 << m_unRobotId << ","
+	 << RobotId << ","
 	 << EXPLORE;
   return result.str();
 }
@@ -35,7 +35,7 @@ CReturnTrace::CReturnTrace(UInt32 robotId) :
 std::string CReturnTrace::Format(UInt32 time) {
   std::stringstream result;
   result << time << ","
-	 << m_unRobotId << ","
+	 << RobotId << ","
 	 << RETURN_TO_NEST;
   return result.str();
 }
@@ -48,7 +48,7 @@ CRestTrace::CRestTrace(UInt32 robotId) :
 std::string CRestTrace::Format(UInt32 time) {
   std::stringstream result;
   result << time << ","
-	 << m_unRobotId << ","
+	 << RobotId << ","
 	 << REST;
   return result.str();
 }
@@ -60,7 +60,7 @@ CCollisionTrace::CCollisionTrace(UInt32 robotId) :
 std::string CCollisionTrace::Format(UInt32 time) {
   std::stringstream result;
   result << time << ","
-	 << m_unRobotId << ","
+	 << RobotId << ","
 	 << COLLISION;
   return result.str();
 }
@@ -72,7 +72,7 @@ CPickUpItemTrace::CPickUpItemTrace(UInt32 robotId) :
 std::string CPickUpItemTrace::Format(UInt32 time) {
   std::stringstream result;
   result << time << ","
-	 << m_unRobotId << ","
+	 << RobotId << ","
 	 << PICK_UP_ITEM;
   return result.str();
 }
@@ -84,7 +84,7 @@ CDropItemTrace::CDropItemTrace(UInt32 robotId) :
 std::string CDropItemTrace::Format(UInt32 time) {
   std::stringstream result;
   result << time << ","
-	 << m_unRobotId << ","
+	 << RobotId << ","
 	 << DROP_ITEM;
   return result.str();
 }

@@ -10,15 +10,15 @@
 /****************************************/
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
-  m_cForagingArenaSideX(-0.9f, 1.7f),
-  m_cForagingArenaSideY(-1.7f, 1.7f),
-  m_pcFloor(NULL),
-  m_pcRNG(NULL),
-  m_unNextFoodDrop(0),
-  m_unCollectedFood(0),
-  m_nEnergy(0),
-  m_unEnergyPerFoodItem(1),
-  m_unEnergyPerWalkingRobot(1) {
+  ForagingArenaSideX(-0.9f, 1.7f),
+  ForagingArenaSideY(-1.7f, 1.7f),
+  Floor(NULL),
+  RNG(NULL),
+  NextFoodDrop(0),
+  CollectedFood(0),
+  Energy(0),
+  EnergyPerFoodItem(1),
+  EnergyPerWalkingRobot(1) {
 }
 
 /****************************************/
@@ -28,7 +28,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
   try {
     TConfigurationNode& tForaging = GetNode(t_node, "foraging");
     /* Get a pointer to the floor entity */
-    m_pcFloor = &m_cSpace.GetFloorEntity();
+    Floor = &Space().GetFloorEntity();
     /* Get the number of food items we want to be scattered from XML */
     UInt32 unFoodItems;
     GetNodeAttribute(tForaging, "items", unFoodItems);
@@ -36,26 +36,26 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
     GetNodeAttribute(tForaging, "radius", m_fFoodSquareRadius);
     m_fFoodSquareRadius *= m_fFoodSquareRadius;
     /* Create a new RNG */
-    m_pcRNG = CARGoSRandom::CreateRNG("argos");
+    RNG = CARGoSRandom::CreateRNG("argos");
     /* Distribute uniformly the items in the environment */
     for(UInt32 i = 0; i < unFoodItems; ++i) {
-      m_cFoodPos.push_back(
-			   CVector2(m_pcRNG->Uniform(m_cForagingArenaSideX),
-				    m_pcRNG->Uniform(m_cForagingArenaSideY)));
+      FoodPos.push_back(
+			   CVector2(RNG->Uniform(ForagingArenaSideX),
+				    RNG->Uniform(ForagingArenaSideY)));
     }
     /* Get the mean time for food drops from XML */
     GetNodeAttribute(tForaging, "food_drop_mean", m_fFoodDropMean);
     /* Initialize the next food drop */
-    m_unNextFoodDrop = m_pcRNG->Exponential(m_fFoodDropMean);
+    NextFoodDrop = RNG->Exponential(m_fFoodDropMean);
     /* Get the output file name from XML */
-    GetNodeAttribute(tForaging, "output", m_strOutput);
+    GetNodeAttribute(tForaging, "output", strOutput);
     /* Open the file, erasing its contents */
-    m_cOutput.open(m_strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-    // m_cOutput << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
+    Output.open(strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
+    // Output << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
     /* Get energy gain per item collected */
-    GetNodeAttribute(tForaging, "energy_per_item", m_unEnergyPerFoodItem);
+    GetNodeAttribute(tForaging, "energy_per_item", EnergyPerFoodItem);
     /* Get energy loss per walking robot */
-    GetNodeAttribute(tForaging, "energy_per_walking_robot", m_unEnergyPerWalkingRobot);
+    GetNodeAttribute(tForaging, "energy_per_walking_robot", EnergyPerWalkingRobot);
   }
   catch(CARGoSException& ex) {
     THROW_ARGOSEXCEPTION_NESTED("Error parsing loop functions!", ex);
@@ -67,20 +67,20 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
 
 void CForagingLoopFunctions::Reset() {
   /* Reset the next drop time */
-  m_unNextFoodDrop = m_pcRNG->Exponential(m_fFoodDropMean);
+  NextFoodDrop = RNG->Exponential(m_fFoodDropMean);
   
   /* Zero the counters */
-  m_unCollectedFood = 0;
-  m_nEnergy = 0;
+  CollectedFood = 0;
+  Energy = 0;
   /* Close the file */
-  m_cOutput.close();
+  Output.close();
   /* Open the file, erasing its contents */
-  m_cOutput.open(m_strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-  // m_cOutput << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
+  Output.open(strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
+  // Output << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
   /* Distribute uniformly the items in the environment */
-  for(UInt32 i = 0; i < m_cFoodPos.size(); ++i) {
-    m_cFoodPos[i].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
-		      m_pcRNG->Uniform(m_cForagingArenaSideY));
+  for(UInt32 i = 0; i < FoodPos.size(); ++i) {
+    FoodPos[i].Set(RNG->Uniform(ForagingArenaSideX),
+		      RNG->Uniform(ForagingArenaSideY));
   }
 }
 
@@ -89,7 +89,7 @@ void CForagingLoopFunctions::Reset() {
 
 void CForagingLoopFunctions::Destroy() {
   /* Close the file */
-  m_cOutput.close();
+  Output.close();
 }
 
 /****************************************/
@@ -99,8 +99,8 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane
   if(c_position_on_plane.GetX() < -1.0f) {
     return CColor::GRAY50;
   }
-  for(UInt32 i = 0; i < m_cFoodPos.size(); ++i) {
-    if((c_position_on_plane - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
+  for(UInt32 i = 0; i < FoodPos.size(); ++i) {
+    if((c_position_on_plane - FoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
       return CColor::BLACK;
     }
   }
@@ -118,25 +118,25 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
    * If a robot is on a food item, pick it
    * Each robot can carry only one food item per time
    */
-  UInt32 unCurrentClock = m_cSpace.GetSimulationClock();
-  if (unCurrentClock >= m_unNextFoodDrop) {
+  UInt32 unCurrentClock = Space().GetSimulationClock();
+  if (unCurrentClock >= NextFoodDrop) {
     // Determine the time for the next food drop
-    m_unNextFoodDrop += m_pcRNG->Exponential(m_fFoodDropMean);
+    NextFoodDrop += RNG->Exponential(m_fFoodDropMean);
     // Drop a new food item
-    m_cFoodPos.push_back(CVector2(m_pcRNG->Uniform(m_cForagingArenaSideX),
-				  m_pcRNG->Uniform(m_cForagingArenaSideY)));
+    FoodPos.push_back(CVector2(RNG->Uniform(ForagingArenaSideX),
+				  RNG->Uniform(ForagingArenaSideY)));
     // Update the floor texture
-    m_pcFloor->SetChanged();
+    Floor->SetChanged();
 
   }
 
   UInt32 unWalkingFBs = 0;
   UInt32 unRestingFBs = 0;
   /* Check whether a robot is on a food item */
-  CSpace::TAnyEntityMap& m_cFootbots = m_cSpace.GetEntitiesByType("footbot_entity");
+  CSpace::TAnyEntityMap& Footbots = Space().GetEntitiesByType("footbot_entity");
   
-  for(CSpace::TAnyEntityMap::iterator it = m_cFootbots.begin();
-      it != m_cFootbots.end();
+  for(CSpace::TAnyEntityMap::iterator it = Footbots.begin();
+      it != Footbots.end();
        ++it) {
     /* Get handle to foot-bot entity and controller */
     CFootBotEntity& cFootBot = *any_cast<CFootBotEntity*>(it->second);
@@ -147,7 +147,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     for (std::vector<CTraceMessage*>::iterator sit = cTraceMessages.begin();
 	 sit != cTraceMessages.end();
 	 ++sit) {
-      m_cOutput << (*sit)->Format(m_cSpace.GetSimulationClock()-1)  << std::endl;
+      Output << (*sit)->Format(Space().GetSimulationClock()-1)  << std::endl;
     }
     cTraceMessages.clear();
 
@@ -173,13 +173,13 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 
 	/* Log that the food was dropped. */
 	CDropItemTrace cDropTrace(cController.GetId());
-	m_cOutput << cDropTrace.Format(m_cSpace.GetSimulationClock()) << std::endl;
+	Output << cDropTrace.Format(Space().GetSimulationClock()) << std::endl;
 
 	/* Increase the energy and food count */
-	m_nEnergy += m_unEnergyPerFoodItem;
-	++m_unCollectedFood;
+	Energy += EnergyPerFoodItem;
+	++CollectedFood;
 	/* The floor texture must be updated */
-	m_pcFloor->SetChanged();
+	Floor->SetChanged();
       }
     }
     else {
@@ -188,20 +188,20 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
       if(cPos.GetX() > -1.0f) {
 	/* Check whether the foot-bot is on a food item */
 	bool bDone = false;
-	for(size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i) {
-	  if((cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
+	for(size_t i = 0; i < FoodPos.size() && !bDone; ++i) {
+	  if((cPos - FoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
 	    /* If so, we delete that item */
-	    std::vector<CVector2>::iterator it = m_cFoodPos.begin();
+	    std::vector<CVector2>::iterator it = FoodPos.begin();
 	    advance(it, i);
-	    m_cFoodPos.erase(it);
+	    FoodPos.erase(it);
 	    /* And add an entry to the log */
 	    CPickUpItemTrace cPickUpTrace(cController.GetId());
-	    m_cOutput << cPickUpTrace.Format(m_cSpace.GetSimulationClock()) << std::endl;
+	    Output << cPickUpTrace.Format(Space().GetSimulationClock()) << std::endl;
 
 	    /* The foot-bot is now carrying an item */
 	    sFoodData.HasFoodItem = true;
 	    /* The floor texture must be updated */
-	    m_pcFloor->SetChanged();
+	    Floor->SetChanged();
 	    /* We are done */
 	    bDone = true;
 	  }
@@ -210,17 +210,17 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     }
   }
   /* Update energy expediture due to walking robots */
-  m_nEnergy -= unWalkingFBs * m_unEnergyPerWalkingRobot;
+  Energy -= unWalkingFBs * EnergyPerWalkingRobot;
   /* Output stuff to file */
   /*
-  m_cOutput << m_cSpace.GetSimulationClock() << "\t"
+  Output << Space().GetSimulationClock() << "\t"
 	    << unWalkingFBs << "\t"
 	    << unRestingFBs << "\t"
-	    << m_unCollectedFood << "\t"
-	    << m_nEnergy << std::endl;
+	    << CollectedFood << "\t"
+	    << Energy << std::endl;
   */
   /* Flush output */
-  m_cOutput << std::endl;
+  Output << std::endl;
 }
 
 /****************************************/

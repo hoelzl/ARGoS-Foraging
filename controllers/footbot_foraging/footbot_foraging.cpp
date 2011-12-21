@@ -99,15 +99,15 @@ bool CFootBotForaging::SStateData::RestingPeriodIsOver() {
 ////////////////////////////////////////////////////////////////////////
 
 CFootBotForaging::CFootBotForaging() :
-   m_pcWheels(NULL),
-   m_pcLEDs(NULL),
-   m_pcRABA(NULL),
-   m_pcRABS(NULL),
-   m_pcProximity(NULL),
-   m_pcLight(NULL),
-   m_pcGround(NULL),
-   m_pcRNG(NULL),
-   m_unLastCollisionLog(0) {}
+   Wheels(NULL),
+   LEDs(NULL),
+   RABA(NULL),
+   RABS(NULL),
+   Proximity(NULL),
+   Light(NULL),
+   Ground(NULL),
+   RNG(NULL),
+   LastCollisionLog(0) {}
 
 UInt32 CFootBotForaging::s_unIdCounter = 0;
 
@@ -119,27 +119,27 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
      /*
       * Set Id
       */
-     m_unId = s_unIdCounter++;
+     Id = s_unIdCounter++;
 
       /*
        * Initialize sensors/actuators
        */
-      m_pcWheels    = dynamic_cast<CCI_FootBotWheelsActuator* >  (GetRobot().GetActuator("footbot_wheels"      ));
-      m_pcLEDs      = dynamic_cast<CCI_FootBotLedsActuator* >    (GetRobot().GetActuator("footbot_leds"        ));
-      m_pcRABA      = dynamic_cast<CCI_RangeAndBearingActuator*> (GetRobot().GetActuator("range_and_bearing"   ));
-      m_pcRABS      = dynamic_cast<CCI_RangeAndBearingSensor*>   (GetRobot().GetSensor  ("range_and_bearing"   ));
-      m_pcProximity = dynamic_cast<CCI_FootBotProximitySensor*>  (GetRobot().GetSensor  ("footbot_proximity"   ));
-      m_pcLight     = dynamic_cast<CCI_FootBotLightSensor*>      (GetRobot().GetSensor  ("footbot_light"       ));
-      m_pcGround    = dynamic_cast<CCI_FootBotMotorGroundSensor*>(GetRobot().GetSensor  ("footbot_motor_ground"));
+      Wheels    = dynamic_cast<CCI_FootBotWheelsActuator* >  (GetRobot().GetActuator("footbot_wheels"      ));
+      LEDs      = dynamic_cast<CCI_FootBotLedsActuator* >    (GetRobot().GetActuator("footbot_leds"        ));
+      RABA      = dynamic_cast<CCI_RangeAndBearingActuator*> (GetRobot().GetActuator("range_and_bearing"   ));
+      RABS      = dynamic_cast<CCI_RangeAndBearingSensor*>   (GetRobot().GetSensor  ("range_and_bearing"   ));
+      Proximity = dynamic_cast<CCI_FootBotProximitySensor*>  (GetRobot().GetSensor  ("footbot_proximity"   ));
+      Light     = dynamic_cast<CCI_FootBotLightSensor*>      (GetRobot().GetSensor  ("footbot_light"       ));
+      Ground    = dynamic_cast<CCI_FootBotMotorGroundSensor*>(GetRobot().GetSensor  ("footbot_motor_ground"));
       /*
        * Parse XML parameters
        */
       /* Diffusion algorithm */
-      m_sDiffusionParams.Init(GetNode(t_node, "diffusion"));
+      DiffusionParams.Init(GetNode(t_node, "diffusion"));
       /* Wheel turning */
-      m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
+      WheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
       /* Controller state */
-      m_sStateData.Init(GetNode(t_node, "state"));
+      StateData.Init(GetNode(t_node, "state"));
    }
    catch(CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing the foot-bot foraging controller for robot \"" << GetRobot().GetRobotId() << "\"", ex);
@@ -148,7 +148,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
     * Initialize other stuff
     */
    /* Create a random number generator. We use the 'argos' category so that creation, reset, seeding and cleanup are managed by ARGoS. */
-   m_pcRNG = CARGoSRandom::CreateRNG("argos");
+   RNG = CARGoSRandom::CreateRNG("argos");
    Reset();
 }
 
@@ -157,7 +157,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 
 void CFootBotForaging::ControlStep() {
   UpdateState();
-  switch(m_sStateData.State) {
+  switch(StateData.State) {
   case SStateData::STATE_RESTING: {
     Rest();
     break;
@@ -182,16 +182,16 @@ void CFootBotForaging::ControlStep() {
 
 void CFootBotForaging::Reset() {
    /* Reset robot state */
-   m_sStateData.Reset();
+   StateData.Reset();
    /* Reset food data */
-   m_sFoodData.Reset();
+   FoodData.Reset();
    /* Set LED color */
-   m_pcLEDs->SetAllColors(CColor::RED);
+   LEDs->SetAllColors(CColor::RED);
    /* Clear up the last exploration result */
    m_eLastExplorationResult = LAST_EXPLORATION_NONE;
    TRangeAndBearingReceivedPacket::TRangeAndBearingData tData;
    tData[0] = LAST_EXPLORATION_NONE;
-   m_pcRABA->SetData(tData);
+   RABA->SetData(tData);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -199,9 +199,9 @@ void CFootBotForaging::Reset() {
 
 void CFootBotForaging::UpdateState() {
    /* Reset state flags */
-   m_sStateData.InNest = false;
+   StateData.InNest = false;
    /* Read stuff from the ground sensor */
-   const CCI_FootBotMotorGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
+   const CCI_FootBotMotorGroundSensor::TReadings& tGroundReads = Ground->GetReadings();
    /*
     * You can say whether you are in the nest by checking the ground sensor
     * placed close to the wheel motors. It returns a value between 0 and 1.
@@ -217,7 +217,7 @@ void CFootBotForaging::UpdateState() {
       tGroundReads[2].Value < 0.75f &&
       tGroundReads[3].Value > 0.25f &&
       tGroundReads[3].Value < 0.75f) {
-      m_sStateData.InNest = true;
+      StateData.InNest = true;
    }
 }
 ////////////////////////////////////////////////////////////////////////
@@ -225,7 +225,7 @@ void CFootBotForaging::UpdateState() {
 
 CVector2 CFootBotForaging::CalculateVectorToLight() {
    /* Get readings from light sensor */
-   const CCI_FootBotLightSensor::TReadings& tLightReads = m_pcLight->GetReadings();
+   const CCI_FootBotLightSensor::TReadings& tLightReads = Light->GetReadings();
    /* Sum them together */
    CVector2 cAccumulator;
    for(size_t i = 0; i < tLightReads.size(); ++i) {
@@ -247,7 +247,7 @@ CVector2 CFootBotForaging::CalculateVectorToLight() {
 CVector2 CFootBotForaging::DiffusionVector(bool& b_collision) {
   // Get readings from proximity sensor
   const CCI_FootBotProximitySensor::TReadings& tProxReads
-    = m_pcProximity->GetReadings();
+    = Proximity->GetReadings();
   // Sum them together
   CVector2 cDiffusionVector;
   for(size_t i = 0; i < tProxReads.size(); ++i) {
@@ -256,8 +256,8 @@ CVector2 CFootBotForaging::DiffusionVector(bool& b_collision) {
   // If the angle of the vector is small enough and the closest
   // obstacle is far enough, ignore the vector and go straight,
   // otherwise return it.
-  if(m_sDiffusionParams.GoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cDiffusionVector.Angle()) &&
-     cDiffusionVector.Length() < m_sDiffusionParams.Delta ) {
+  if(DiffusionParams.GoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cDiffusionVector.Angle()) &&
+     cDiffusionVector.Length() < DiffusionParams.Delta ) {
     b_collision = false;
     return CVector2::X;
   }
@@ -277,30 +277,30 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
   // Get the length of the heading vector
   Real fHeadingLength = c_heading.Length();
   // Clamp the speed so that it's not greater than MaxSpeed
-  Real fBaseAngularWheelSpeed = Min<Real>(fHeadingLength, m_sWheelTurningParams.MaxSpeed);
+  Real fBaseAngularWheelSpeed = Min<Real>(fHeadingLength, WheelTurningParams.MaxSpeed);
 
-  SWheelTurningParams::ETurningMechanism oldTurningMechanism = m_sWheelTurningParams.TurningMechanism;
+  SWheelTurningParams::ETurningMechanism oldTurningMechanism = WheelTurningParams.TurningMechanism;
   // Turning state switching conditions
-  if(Abs(cHeadingAngle) <= m_sWheelTurningParams.NoTurnAngleThreshold) {
+  if(Abs(cHeadingAngle) <= WheelTurningParams.NoTurnAngleThreshold) {
     // No Turn, heading angle very small
-    m_sWheelTurningParams.TurningMechanism = SWheelTurningParams::NO_TURN;
+    WheelTurningParams.TurningMechanism = SWheelTurningParams::NO_TURN;
   }
-  else if(Abs(cHeadingAngle) > m_sWheelTurningParams.HardTurnOnAngleThreshold) {
+  else if(Abs(cHeadingAngle) > WheelTurningParams.HardTurnOnAngleThreshold) {
     // Hard Turn, heading angle very large
-    m_sWheelTurningParams.TurningMechanism = SWheelTurningParams::HARD_TURN;
+    WheelTurningParams.TurningMechanism = SWheelTurningParams::HARD_TURN;
   }
-  else if(m_sWheelTurningParams.TurningMechanism == SWheelTurningParams::NO_TURN &&
-	  Abs(cHeadingAngle) > m_sWheelTurningParams.SoftTurnOnAngleThreshold) {
+  else if(WheelTurningParams.TurningMechanism == SWheelTurningParams::NO_TURN &&
+	  Abs(cHeadingAngle) > WheelTurningParams.SoftTurnOnAngleThreshold) {
     // Soft Turn, heading angle in between the two cases */
-    m_sWheelTurningParams.TurningMechanism = SWheelTurningParams::SOFT_TURN;
+    WheelTurningParams.TurningMechanism = SWheelTurningParams::SOFT_TURN;
   }
-  if (oldTurningMechanism != m_sWheelTurningParams.TurningMechanism) {
-    m_cTraceMessages.push_back(new CCollisionTrace(m_unId));
+  if (oldTurningMechanism != WheelTurningParams.TurningMechanism) {
+    TraceMessages.push_back(new CCollisionTrace(Id));
   }
   
   // Wheel speeds based on current turning state
   Real fSpeed1, fSpeed2;
-  switch(m_sWheelTurningParams.TurningMechanism) {
+  switch(WheelTurningParams.TurningMechanism) {
   case SWheelTurningParams::NO_TURN: {
     // Just go straight
     fSpeed1 = fBaseAngularWheelSpeed;
@@ -310,7 +310,7 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
 
   case SWheelTurningParams::SOFT_TURN: {
     // Both wheels go straight, but one is faster than the other
-    Real fSpeedFactor = (m_sWheelTurningParams.HardTurnOnAngleThreshold - Abs(cHeadingAngle)) / m_sWheelTurningParams.HardTurnOnAngleThreshold;
+    Real fSpeedFactor = (WheelTurningParams.HardTurnOnAngleThreshold - Abs(cHeadingAngle)) / WheelTurningParams.HardTurnOnAngleThreshold;
     fSpeed1 = fBaseAngularWheelSpeed - fBaseAngularWheelSpeed * (1.0 - fSpeedFactor);
     fSpeed2 = fBaseAngularWheelSpeed + fBaseAngularWheelSpeed * (1.0 - fSpeedFactor);
     break;
@@ -318,8 +318,8 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
     
   case SWheelTurningParams::HARD_TURN: {
     // Opposite wheel speeds
-    fSpeed1 = -m_sWheelTurningParams.MaxSpeed;
-    fSpeed2 =  m_sWheelTurningParams.MaxSpeed;
+    fSpeed1 = -WheelTurningParams.MaxSpeed;
+    fSpeed2 =  WheelTurningParams.MaxSpeed;
     break;
   }
   }
@@ -337,55 +337,55 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
      fRightWheelSpeed = fSpeed1;
    }
    // Finally, set the wheel speeds
-   m_pcWheels->SetLinearVelocity(fLeftWheelSpeed, fRightWheelSpeed);
+   Wheels->SetLinearVelocity(fLeftWheelSpeed, fRightWheelSpeed);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
 void CFootBotForaging::StartResting() {
-  if (m_sStateData.State == SStateData::STATE_RESTING) {
+  if (StateData.State == SStateData::STATE_RESTING) {
     LOGERR << "Trying to start resting when already in STATE_RESTING"
 	   << std::endl;
   }
-  m_sStateData.SaveState();
-  m_sStateData.State = SStateData::STATE_RESTING;
-  m_pcLEDs->SetAllColors(CColor::RED);
-  m_cTraceMessages.push_back(new CRestTrace(m_unId));
-  m_sStateData.SetNewWakeUpTime(m_pcRNG->Exponential(m_sStateData.RestToExploreMean));
+  StateData.SaveState();
+  StateData.State = SStateData::STATE_RESTING;
+  LEDs->SetAllColors(CColor::RED);
+  TraceMessages.push_back(new CRestTrace(Id));
+  StateData.SetNewWakeUpTime(RNG->Exponential(StateData.RestToExploreMean));
 }
 
 void CFootBotForaging::StartExploring() {
-  if (m_sStateData.State == SStateData::STATE_EXPLORING) {
+  if (StateData.State == SStateData::STATE_EXPLORING) {
     LOGERR << "Trying to start exploring when already in STATE_EXPLORING"
 	   << std::endl;
   }
-  m_sStateData.SaveState();
-  m_sStateData.State = SStateData::STATE_EXPLORING;
-  m_pcLEDs->SetAllColors(CColor::GREEN);
-  m_cTraceMessages.push_back(new CExploreTrace(m_unId));
+  StateData.SaveState();
+  StateData.State = SStateData::STATE_EXPLORING;
+  LEDs->SetAllColors(CColor::GREEN);
+  TraceMessages.push_back(new CExploreTrace(Id));
 }
 
 void CFootBotForaging::StartReturningToNest() {
-  if (m_sStateData.State == SStateData::STATE_RETURN_TO_NEST) {
+  if (StateData.State == SStateData::STATE_RETURN_TO_NEST) {
     LOGERR << "Trying to return to nest when already in STATE_RETURN_TO_NEST"
 	   << std::endl;
   }
-  m_sStateData.SaveState();
-  m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
-  m_pcLEDs->SetAllColors(CColor::BLUE);
-  m_cTraceMessages.push_back(new CReturnTrace(m_unId));
+  StateData.SaveState();
+  StateData.State = SStateData::STATE_RETURN_TO_NEST;
+  LEDs->SetAllColors(CColor::BLUE);
+  TraceMessages.push_back(new CReturnTrace(Id));
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
 void CFootBotForaging::Rest() {
-  if (m_sStateData.RestingPeriodIsOver()) {
+  if (StateData.RestingPeriodIsOver()) {
     StartExploring();
   }
   else {
-    ++m_sStateData.TimeRested;
+    ++StateData.TimeRested;
   }
 }
 
@@ -394,7 +394,7 @@ void CFootBotForaging::Rest() {
 
 void CFootBotForaging::Explore() {
   // We return to the nest when we have picked up a food item.
-  if (m_sFoodData.HasFoodItem) {
+  if (FoodData.HasFoodItem) {
     StartReturningToNest();
     return;
   }
@@ -404,50 +404,48 @@ void CFootBotForaging::Explore() {
     CVector2 cDiffusion = DiffusionVector(bCollision);
     // If we are in the nest, we combine antiphototaxis with obstacle
     // avoidance. Outside the nest, we just use the diffusion vector
-    if(m_sStateData.InNest) {
+    if(StateData.InNest) {
       // The vector returned by CalculateVectorToLight() points to the
       // light. Thus, the minus sign is because we want to go away
       // from the light.
       SetWheelSpeedsFromVector(
-        m_sWheelTurningParams.MaxSpeed * cDiffusion -
-	m_sWheelTurningParams.MaxSpeed * 0.25f * CalculateVectorToLight());
+        WheelTurningParams.MaxSpeed * cDiffusion -
+	WheelTurningParams.MaxSpeed * 0.25f * CalculateVectorToLight());
     }
     else {
       // Use the diffusion vector only
-      SetWheelSpeedsFromVector(m_sWheelTurningParams.MaxSpeed * cDiffusion);
+      SetWheelSpeedsFromVector(WheelTurningParams.MaxSpeed * cDiffusion);
     }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/****************************************/
-/****************************************/
 
 void CFootBotForaging::ReturnToNest() {
   // Are we in the nest?
-  if(m_sStateData.InNest) {
+  if(StateData.InNest) {
     // Have we looked for a place long enough?
-    if(m_sStateData.TimeSearchingForPlaceInNest > m_sStateData.MinimumSearchForPlaceInNestTime) {
+    if(StateData.TimeSearchingForPlaceInNest > StateData.MinimumSearchForPlaceInNestTime) {
       // Yes, stop the wheels...
-      m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
+      Wheels->SetLinearVelocity(0.0f, 0.0f);
       StartResting();
       return;
     }
     else {
       /* No, keep looking */
-      ++m_sStateData.TimeSearchingForPlaceInNest;
+      ++StateData.TimeSearchingForPlaceInNest;
     }
   }
   else {
     /* Still outside the nest */
-    m_sStateData.TimeSearchingForPlaceInNest = 0;
+    StateData.TimeSearchingForPlaceInNest = 0;
   }
   /* Keep going */
   bool bCollision;
   SetWheelSpeedsFromVector(
-    m_sWheelTurningParams.MaxSpeed * DiffusionVector(bCollision) +
-    m_sWheelTurningParams.MaxSpeed * CalculateVectorToLight());
+    WheelTurningParams.MaxSpeed * DiffusionVector(bCollision) +
+    WheelTurningParams.MaxSpeed * CalculateVectorToLight());
 }
 
 ////////////////////////////////////////////////////////////////////////

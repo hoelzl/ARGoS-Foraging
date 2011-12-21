@@ -23,25 +23,29 @@ class CForagingLoopFunctions : public CLoopFunctions {
   virtual void PrePhysicsEngineStep();
   
  private:
+
+  inline CSpace& Space() {
+    return m_cSpace;
+  }
   
   Real m_fFoodSquareRadius;
-  CRange<Real> m_cForagingArenaSideX, m_cForagingArenaSideY;
-  std::vector<CVector2> m_cFoodPos;
-  CFloorEntity* m_pcFloor;
-  CARGoSRandom::CRNG* m_pcRNG;
+  CRange<Real> ForagingArenaSideX, ForagingArenaSideY;
+  std::vector<CVector2> FoodPos;
+  CFloorEntity* Floor;
+  CARGoSRandom::CRNG* RNG;
   
-  std::string m_strOutput;
-  std::ofstream m_cOutput;
+  std::string strOutput;
+  std::ofstream Output;
   
   // The time when the next food item should be dropped
-  UInt32 m_unNextFoodDrop;
+  UInt32 NextFoodDrop;
   // The mean value for the exponential distributions between food drops
   Real m_fFoodDropMean;
   
-  UInt32 m_unCollectedFood;
-  SInt64 m_nEnergy;
-  UInt32 m_unEnergyPerFoodItem;
-  UInt32 m_unEnergyPerWalkingRobot;
+  UInt32 CollectedFood;
+  SInt64 Energy;
+  UInt32 EnergyPerFoodItem;
+  UInt32 EnergyPerWalkingRobot;
 };
 
 #endif

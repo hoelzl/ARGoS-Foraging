@@ -191,42 +191,42 @@ class CFootBotForaging : public CCI_Controller {
    * Returns true if the robot is currently exploring.
    */
   inline bool IsExploring() const {
-    return m_sStateData.State == SStateData::STATE_EXPLORING;
+    return StateData.State == SStateData::STATE_EXPLORING;
   }
 
   /*
    * Returns true if the robot is currently resting.
    */
   inline bool IsResting() const {
-    return m_sStateData.State == SStateData::STATE_RESTING;
+    return StateData.State == SStateData::STATE_RESTING;
   }
 
   /*
    * Returns true if the robot is currently returning to the nest.
    */
   inline bool IsReturningToNest() const {
-    return m_sStateData.State == SStateData::STATE_RETURN_TO_NEST;
+    return StateData.State == SStateData::STATE_RETURN_TO_NEST;
   }
 
   /*
    * Returns the food data
    */
   inline SFoodData& GetFoodData() {
-    return m_sFoodData;
+    return FoodData;
   }
 
   /*
    * Returns the Id
    */
   inline UInt32 GetId() {
-    return m_unId;
+    return Id;
   }
 
   /*
    * Returns the tracing messages for this robot
    */
   inline std::vector<CTraceMessage*>& GetTraceMessages() {
-    return m_cTraceMessages;
+    return TraceMessages;
   }
 
  private:
@@ -292,25 +292,25 @@ class CFootBotForaging : public CCI_Controller {
  private:
 
   /* Pointer to the foot-bot wheels actuator */
-  CCI_FootBotWheelsActuator*  m_pcWheels;
+  CCI_FootBotWheelsActuator*  Wheels;
   /* Pointer to the foot-bot LEDs actuator */
-  CCI_FootBotLedsActuator*  m_pcLEDs;
+  CCI_FootBotLedsActuator*  LEDs;
   /* Pointer to the range and bearing actuator */
-  CCI_RangeAndBearingActuator*  m_pcRABA;
+  CCI_RangeAndBearingActuator*  RABA;
   /* Pointer to the range and bearing sensor */
-  CCI_RangeAndBearingSensor* m_pcRABS;
+  CCI_RangeAndBearingSensor* RABS;
   /* Pointer to the foot-bot proximity sensor */
-  CCI_FootBotProximitySensor* m_pcProximity;
+  CCI_FootBotProximitySensor* Proximity;
   /* Pointer to the foot-bot light sensor */
-  CCI_FootBotLightSensor* m_pcLight;
+  CCI_FootBotLightSensor* Light;
   /* Pointer to the foot-bot motor ground sensor */
-  CCI_FootBotMotorGroundSensor* m_pcGround;
+  CCI_FootBotMotorGroundSensor* Ground;
 
   static UInt32 s_unIdCounter;
-  UInt32 m_unId;
+  UInt32 Id;
 
   /* The random number generator */
-  CARGoSRandom::CRNG* m_pcRNG;
+  CARGoSRandom::CRNG* RNG;
 
   /* Used in the social rule to communicate the result of the last exploration attempt */
   enum ELastExplorationResult {
@@ -320,16 +320,16 @@ class CFootBotForaging : public CCI_Controller {
   } m_eLastExplorationResult;
 
   /* The controller state information */
-  SStateData m_sStateData;
+  SStateData StateData;
   /* The turning parameters */
-  SWheelTurningParams m_sWheelTurningParams;
+  SWheelTurningParams WheelTurningParams;
   /* The diffusion parameters */
-  SDiffusionParams m_sDiffusionParams;
+  SDiffusionParams DiffusionParams;
   /* The food data */
-  SFoodData m_sFoodData;
+  SFoodData FoodData;
 
-  std::vector<CTraceMessage*> m_cTraceMessages;
-  UInt32 m_unLastCollisionLog;
+  std::vector<CTraceMessage*> TraceMessages;
+  UInt32 LastCollisionLog;
 
 };
 
