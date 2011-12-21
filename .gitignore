@@ -2,7 +2,7 @@
 .#.*
 .DS_Store
 *~
+*.csv
 *.png
 build/
-foraging.txt
 TAGS

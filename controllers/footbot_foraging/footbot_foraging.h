@@ -225,8 +225,15 @@ class CFootBotForaging : public CCI_Controller {
   /*
    * Returns the tracing messages for this robot
    */
-  inline std::vector<CTraceMessage*>& GetTraceMessages() {
-    return TraceMessages;
+  inline std::vector<CTraceMessage*> *GetTraceMessages() {
+    return &TraceMessages;
+  }
+
+  /*
+   * Returns the collision messages for this robot
+   */
+  inline std::vector<CTraceMessage*> *GetCollisionMessages() {
+    return &CollisionMessages;
   }
 
  private:
@@ -329,7 +336,7 @@ class CFootBotForaging : public CCI_Controller {
   SFoodData FoodData;
 
   std::vector<CTraceMessage*> TraceMessages;
-  UInt32 LastCollisionLog;
+  std::vector<CTraceMessage*> CollisionMessages;
 
 };
 

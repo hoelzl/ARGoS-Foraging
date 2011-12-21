@@ -23,7 +23,6 @@ class CForagingLoopFunctions : public CLoopFunctions {
   virtual void PrePhysicsEngineStep();
   
  private:
-
   inline CSpace& Space() {
     return m_cSpace;
   }
@@ -34,8 +33,15 @@ class CForagingLoopFunctions : public CLoopFunctions {
   CFloorEntity* Floor;
   CARGoSRandom::CRNG* RNG;
   
-  std::string strOutput;
-  std::ofstream Output;
+  // The trace and collision output files and streams
+  std::string strTraceOutput;
+  std::ofstream TraceOutput;
+  std::string strCollisionOutput;
+  std::ofstream CollisionOutput;
+
+  // The output file and stream for aggregated results
+  std::string strSummaryOutput;
+  std::ofstream SummaryOutput;
   
   // The time when the next food item should be dropped
   UInt32 NextFoodDrop;

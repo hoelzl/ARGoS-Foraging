@@ -39,19 +39,32 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
     RNG = CARGoSRandom::CreateRNG("argos");
     /* Distribute uniformly the items in the environment */
     for(UInt32 i = 0; i < unFoodItems; ++i) {
-      FoodPos.push_back(
-			   CVector2(RNG->Uniform(ForagingArenaSideX),
-				    RNG->Uniform(ForagingArenaSideY)));
+      FoodPos.push_back(CVector2(RNG->Uniform(ForagingArenaSideX),
+				 RNG->Uniform(ForagingArenaSideY)));
     }
     /* Get the mean time for food drops from XML */
     GetNodeAttribute(tForaging, "food_drop_mean", FoodDropMean);
     /* Initialize the next food drop */
     NextFoodDrop = RNG->Exponential(FoodDropMean);
-    /* Get the output file name from XML */
-    GetNodeAttribute(tForaging, "output", strOutput);
+
+    /* Get the trace output file name from XML */
+    GetNodeAttribute(tForaging, "trace_output", strTraceOutput);
     /* Open the file, erasing its contents */
-    Output.open(strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-    // Output << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
+    TraceOutput.open(strTraceOutput.c_str(), 
+		     std::ios_base::trunc | std::ios_base::out);
+
+    /* Get the collision output file name from XML */
+    GetNodeAttribute(tForaging, "collision_output", strTraceOutput);
+    /* Open the file, erasing its contents */
+    CollisionOutput.open(strCollisionOutput.c_str(),
+			 std::ios_base::trunc | std::ios_base::out);
+
+    /* Get the summary output file name from XML */
+    GetNodeAttribute(tForaging, "summary_output", strTraceOutput);
+    /* Open the file, erasing its contents */
+    SummaryOutput.open(strSummaryOutput.c_str(),
+		       std::ios_base::trunc | std::ios_base::out);
+
     /* Get energy gain per item collected */
     GetNodeAttribute(tForaging, "energy_per_item", EnergyPerFoodItem);
     /* Get energy loss per walking robot */
@@ -73,10 +86,10 @@ void CForagingLoopFunctions::Reset() {
   CollectedFood = 0;
   Energy = 0;
   /* Close the file */
-  Output.close();
+  TraceOutput.close();
   /* Open the file, erasing its contents */
-  Output.open(strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-  // Output << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
+  TraceOutput.open(strTraceOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
+  // TraceOutput << "# clock\twalking\tresting\tcollected_food\tenergy" << std::endl;
   /* Distribute uniformly the items in the environment */
   for(UInt32 i = 0; i < FoodPos.size(); ++i) {
     FoodPos[i].Set(RNG->Uniform(ForagingArenaSideX),
@@ -89,7 +102,7 @@ void CForagingLoopFunctions::Reset() {
 
 void CForagingLoopFunctions::Destroy() {
   /* Close the file */
-  Output.close();
+  TraceOutput.close();
 }
 
 /****************************************/
@@ -143,13 +156,13 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     CFootBotForaging& cController = dynamic_cast<CFootBotForaging&>(cFootBot.GetControllableEntity().GetController());
 
     /* Write stored trace messages of the foot-bot */
-    std::vector<CTraceMessage*> cTraceMessages = cController.GetTraceMessages();
-    for (std::vector<CTraceMessage*>::iterator sit = cTraceMessages.begin();
-	 sit != cTraceMessages.end();
+    std::vector<CTraceMessage*> *cTraceMessages = cController.GetTraceMessages();
+    for (std::vector<CTraceMessage*>::iterator sit = cTraceMessages->begin();
+	 sit != cTraceMessages->end();
 	 ++sit) {
-      Output << (*sit)->Format(Space().GetSimulationClock()-1)  << std::endl;
+      TraceOutput << (*sit)->Format(Space().GetSimulationClock()-1)  << std::endl;
     }
-    cTraceMessages.clear();
+    cTraceMessages->clear();
 
     /* Count how many foot-bots are in which state */
     if(! cController.IsResting()) ++unWalkingFBs;
@@ -173,7 +186,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 
 	/* Log that the food was dropped. */
 	CDropItemTrace cDropTrace(cController.GetId());
-	Output << cDropTrace.Format(Space().GetSimulationClock()) << std::endl;
+	TraceOutput << cDropTrace.Format(Space().GetSimulationClock()) << std::endl;
 
 	/* Increase the energy and food count */
 	Energy += EnergyPerFoodItem;
@@ -196,7 +209,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	    FoodPos.erase(it);
 	    /* And add an entry to the log */
 	    CPickUpItemTrace cPickUpTrace(cController.GetId());
-	    Output << cPickUpTrace.Format(Space().GetSimulationClock()) << std::endl;
+	    TraceOutput << cPickUpTrace.Format(Space().GetSimulationClock()) << std::endl;
 
 	    /* The foot-bot is now carrying an item */
 	    sFoodData.HasFoodItem = true;
@@ -213,14 +226,14 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
   Energy -= unWalkingFBs * EnergyPerWalkingRobot;
   /* Output stuff to file */
   /*
-  Output << Space().GetSimulationClock() << "\t"
+  TraceOutput << Space().GetSimulationClock() << "\t"
 	    << unWalkingFBs << "\t"
 	    << unRestingFBs << "\t"
 	    << CollectedFood << "\t"
 	    << Energy << std::endl;
   */
   /* Flush output */
-  Output << std::endl;
+  TraceOutput << std::flush;
 }
 
 /****************************************/

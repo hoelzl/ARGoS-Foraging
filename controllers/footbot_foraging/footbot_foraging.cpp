@@ -106,8 +106,7 @@ CFootBotForaging::CFootBotForaging() :
    Proximity(NULL),
    Light(NULL),
    Ground(NULL),
-   RNG(NULL),
-   LastCollisionLog(0) {}
+   RNG(NULL) {}
 
 UInt32 CFootBotForaging::s_unIdCounter = 0;
 
@@ -295,7 +294,7 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
     WheelTurningParams.TurningMechanism = SWheelTurningParams::SOFT_TURN;
   }
   if (oldTurningMechanism != WheelTurningParams.TurningMechanism) {
-    TraceMessages.push_back(new CCollisionTrace(Id));
+    CollisionMessages.push_back(new CCollisionTrace(Id));
   }
   
   // Wheel speeds based on current turning state
@@ -352,6 +351,7 @@ void CFootBotForaging::StartResting() {
   StateData.State = SStateData::STATE_RESTING;
   LEDs->SetAllColors(CColor::RED);
   TraceMessages.push_back(new CRestTrace(Id));
+  Wheels->SetLinearVelocity(0.0f, 0.0f);
   StateData.SetNewWakeUpTime(RNG->Exponential(StateData.RestToExploreMean));
 }
 
@@ -427,8 +427,7 @@ void CFootBotForaging::ReturnToNest() {
   if(StateData.InNest) {
     // Have we looked for a place long enough?
     if(StateData.TimeSearchingForPlaceInNest > StateData.MinimumSearchForPlaceInNestTime) {
-      // Yes, stop the wheels...
-      Wheels->SetLinearVelocity(0.0f, 0.0f);
+      // Yes, rest
       StartResting();
       return;
     }

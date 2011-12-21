@@ -62,7 +62,9 @@
 	      food_drop_mean="100"
               energy_per_item="1000"
               energy_per_walking_robot="1"
-              output="foraging.txt" />
+              trace_output="foraging.csv"
+	      collision_output="collisions.csv"
+	      summary_output="summary.csv"/>
   </loop_functions>
 
   <!-- *********************** -->
