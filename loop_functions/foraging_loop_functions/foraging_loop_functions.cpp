@@ -13,7 +13,7 @@ CForagingLoopFunctions::CForagingLoopFunctions() :
   ForagingArenaSideY(-1.7f, 1.7f),
   Floor(NULL),
   RNG(NULL),
-  AggregatedEvents(MESSAGE_TYPE_SIZE, 0) {
+  AggregatedEvents(STATE_SIZE, 0) {
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -75,9 +75,8 @@ void CForagingLoopFunctions::Reset() {
   NextFoodDrop = RNG->Exponential(FoodDropMean);
   
   //  Zero the counters 
-  for (UInt32 i = 0; i < AggregatedEvents.size(); ++i) {
-    AggregatedEvents[i] = 0;
-  }
+  InitializeSummaryData();
+
   //  Close the output streams 
   TraceOutput.close();
   CollisionOutput.close();
@@ -150,24 +149,31 @@ void CForagingLoopFunctions::ClearAllMessages(CFootBotForaging *controller) {
   controller->GetCollisionMessages()->clear();
 }
 
+void CForagingLoopFunctions::InitializeSummaryData() {
+  for (UInt32 i = 0; i < AggregatedEvents.size(); ++i) {
+    AggregatedEvents[i] = 0;
+  }
+}
+
 void CForagingLoopFunctions::AddSummaryData(CFootBotEntity *footBot,
 					    CFootBotForaging *controller) {
-  // Process all trace messages.
-  std::vector<CTraceMessage*> *traceMessages = controller->GetTraceMessages();
-  for (std::vector<CTraceMessage*>::iterator sit = traceMessages->begin();
-       sit != traceMessages->end();
-       ++sit) {
-    ++AggregatedEvents[(*sit)->GetMessageType()];
-  }
-  // Process all collision messages.
-  std::vector<CTraceMessage*> *collisionMessages = controller->GetCollisionMessages();
-  if (controller->GetId() == IdForCollisionOutput) {
-    for (std::vector<CTraceMessage*>::iterator sit = collisionMessages->begin();
-	 sit != collisionMessages->end();
-	 ++sit) {
-      ++AggregatedEvents[(*sit)->GetMessageType()];
-    }
-  }
+  // // Process all trace messages.
+  // std::vector<CTraceMessage*> *traceMessages = controller->GetTraceMessages();
+  // for (std::vector<CTraceMessage*>::iterator sit = traceMessages->begin();
+  //      sit != traceMessages->end();
+  //      ++sit) {
+  //   ++AggregatedEvents[(*sit)->GetMessageType()];
+  // }
+  // // Process all collision messages.
+  // std::vector<CTraceMessage*> *collisionMessages = controller->GetCollisionMessages();
+  // if (controller->GetId() == IdForCollisionOutput) {
+  //   for (std::vector<CTraceMessage*>::iterator sit = collisionMessages->begin();
+  // 	 sit != collisionMessages->end();
+  // 	 ++sit) {
+  //     ++AggregatedEvents[(*sit)->GetMessageType()];
+  //   }
+  // }
+  ++AggregatedEvents[controller->GetState()];
 }
 
 void CForagingLoopFunctions::WriteSummaryOutput() {
@@ -206,11 +212,10 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 
   }
 
-  UInt32 walkingFBs = 0;
-  UInt32 restingFBs = 0;
   //  Check whether a robot is on a food item 
   CSpace::TAnyEntityMap& footbots = Space().GetEntitiesByType("footbot_entity");
   
+  InitializeSummaryData();
   for(CSpace::TAnyEntityMap::iterator it = footbots.begin();
       it != footbots.end();
        ++it) {
@@ -222,9 +227,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     WriteCollisionMessages(&footBot, &controller);
     AddSummaryData(&footBot, &controller);
     ClearAllMessages(&controller);
-    //  Count how many foot-bots are in which state 
-    if(! controller.IsResting()) ++walkingFBs;
-    else ++restingFBs;
+
     //  Get the position of the foot-bot on the ground as a CVector2 
     CVector2 pos;
     pos.Set(footBot.GetEmbodiedEntity().GetPosition().GetX(),

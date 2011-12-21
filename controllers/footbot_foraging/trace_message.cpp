@@ -28,55 +28,55 @@ std::string CTraceMessage::GetRobotId() {
 CExploreTrace::CExploreTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-EMessageType CExploreTrace::GetMessageType() {
-  return EXPLORE;
+EState CExploreTrace::GetMessageType() {
+  return EXPLORING;
 }
 
 
 CPickUpItemTrace::CPickUpItemTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-EMessageType CPickUpItemTrace::GetMessageType() {
-  return PICK_UP_ITEM;
+EState CPickUpItemTrace::GetMessageType() {
+  return PICKING_UP_ITEM;
 }
 
 
 CReturnTrace::CReturnTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-EMessageType CReturnTrace::GetMessageType() {
-  return RETURN_TO_NEST;
+EState CReturnTrace::GetMessageType() {
+  return RETURNING_TO_NEST;
 }
 
 
 CDropItemTrace::CDropItemTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-EMessageType CDropItemTrace::GetMessageType() {
-  return DROP_ITEM;
+EState CDropItemTrace::GetMessageType() {
+  return DROPPING_ITEM;
 }
 
 
 CSearchRestingPlaceTrace::CSearchRestingPlaceTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-EMessageType CSearchRestingPlaceTrace::GetMessageType() {
-  return SEARCH_RESTING_PLACE;
+EState CSearchRestingPlaceTrace::GetMessageType() {
+  return SEARCHING_RESTING_PLACE;
 }
 
 
 CRestTrace::CRestTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-EMessageType CRestTrace::GetMessageType() {
-  return REST;
+EState CRestTrace::GetMessageType() {
+  return RESTING;
 }
 
 
 CCollisionTrace::CCollisionTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-EMessageType CCollisionTrace::GetMessageType() {
-  return COLLISION;
+EState CCollisionTrace::GetMessageType() {
+  return AVOIDING_COLLISION;
 }
 

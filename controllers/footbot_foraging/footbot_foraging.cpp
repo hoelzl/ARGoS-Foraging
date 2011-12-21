@@ -75,7 +75,7 @@ void CFootBotForaging::SStateData::Init(TConfigurationNode& t_node) {
 }
 
 void CFootBotForaging::SStateData::Reset() {
-   State = STATE_RESTING;
+   State = RESTING;
    InNest = true;
    WakeUpTime = 0;
    TimeRested = 0;
@@ -156,27 +156,27 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 void CFootBotForaging::ControlStep() {
   UpdateState();
   switch(StateData.State) {
-  case SStateData::STATE_RESTING: {
+  case RESTING: {
     Rest();
     break;
   }
-  case SStateData::STATE_EXPLORING: {
+  case EXPLORING: {
     Explore();
     break;
   }
-  case SStateData::STATE_PICK_UP_ITEM: {
+  case PICKING_UP_ITEM: {
     StartReturningToNest();
     break;
   }
-  case SStateData::STATE_RETURN_TO_NEST: {
+  case RETURNING_TO_NEST: {
     ReturnToNest();
     break;
   }
-  case SStateData::STATE_DROP_ITEM: {
+  case DROPPING_ITEM: {
     StartSearchingForRestingPlace();
     break;
   }
-  case SStateData::STATE_SEARCH_RESTING_PLACE: {
+  case SEARCHING_RESTING_PLACE: {
     SearchForRestingPlace();
     break;
   }
@@ -353,67 +353,67 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& heading) {
 ////////////////////////////////////////////////////////////////////////
 
 void CFootBotForaging::StartExploring() {
-  if (StateData.State == SStateData::STATE_EXPLORING) {
-    LOGERR << "Trying to start exploring when already in STATE_EXPLORING"
+  if (StateData.State == EXPLORING) {
+    LOGERR << "Trying to start exploring when already in EXPLORING"
 	   << std::endl;
   }
   StateData.SaveState();
-  StateData.State = SStateData::STATE_EXPLORING;
+  StateData.State = EXPLORING;
   LEDs->SetAllColors(CColor::GREEN);
   TraceMessages.push_back(new CExploreTrace(Id));
 }
 
 void CFootBotForaging::PickUpItem() {
-  if (StateData.State == SStateData::STATE_PICK_UP_ITEM) {
-    LOGERR << "Trying to pick up an item when already in STATE_PICK_UP_ITEM"
+  if (StateData.State == PICKING_UP_ITEM) {
+    LOGERR << "Trying to pick up an item when already in PICKING_UP_ITEM"
 	   << std::endl;
   }
   StateData.SaveState();
-  StateData.State = SStateData::STATE_PICK_UP_ITEM;
+  StateData.State = PICKING_UP_ITEM;
   LEDs->SetAllColors(CColor::YELLOW);
   TraceMessages.push_back(new CPickUpItemTrace(Id));
 }
 
 void CFootBotForaging::StartReturningToNest() {
-  if (StateData.State == SStateData::STATE_RETURN_TO_NEST) {
-    LOGERR << "Trying to return to nest when already in STATE_RETURN_TO_NEST"
+  if (StateData.State == RETURNING_TO_NEST) {
+    LOGERR << "Trying to return to nest when already in RETURNING_TO_NEST"
 	   << std::endl;
   }
   StateData.SaveState();
-  StateData.State = SStateData::STATE_RETURN_TO_NEST;
+  StateData.State = RETURNING_TO_NEST;
   LEDs->SetAllColors(CColor::BLUE);
   TraceMessages.push_back(new CReturnTrace(Id));
 }
 
 void CFootBotForaging::DropItem() {
-  if (StateData.State == SStateData::STATE_DROP_ITEM) {
-    LOGERR << "Trying to drop an item when already in STATE_DROP_ITEM"
+  if (StateData.State == DROPPING_ITEM) {
+    LOGERR << "Trying to drop an item when already in DROPPING_ITEM"
 	   << std::endl;
   }
   StateData.SaveState();
-  StateData.State = SStateData::STATE_DROP_ITEM;
+  StateData.State = DROPPING_ITEM;
   LEDs->SetAllColors(CColor::YELLOW);
   TraceMessages.push_back(new CDropItemTrace(Id));
 }
 
 void CFootBotForaging::StartSearchingForRestingPlace() {
-  if (StateData.State == SStateData::STATE_SEARCH_RESTING_PLACE) {
-    LOGERR << "Trying to search a resting place when already in STATE_SEARCH_RESTING_PLACE"
+  if (StateData.State == SEARCHING_RESTING_PLACE) {
+    LOGERR << "Trying to search a resting place when already in SEARCHING_RESTING_PLACE"
 	   << std::endl;
   }
   StateData.SaveState();
-  StateData.State = SStateData::STATE_SEARCH_RESTING_PLACE;
+  StateData.State = SEARCHING_RESTING_PLACE;
   LEDs->SetAllColors(CColor::MAGENTA);
   TraceMessages.push_back(new CSearchRestingPlaceTrace(Id));
 }
 
 void CFootBotForaging::StartResting() {
-  if (StateData.State == SStateData::STATE_RESTING) {
-    LOGERR << "Trying to start resting when already in STATE_RESTING"
+  if (StateData.State == RESTING) {
+    LOGERR << "Trying to start resting when already in RESTING"
 	   << std::endl;
   }
   StateData.SaveState();
-  StateData.State = SStateData::STATE_RESTING;
+  StateData.State = RESTING;
   LEDs->SetAllColors(CColor::RED);
   TraceMessages.push_back(new CRestTrace(Id));
   Wheels->SetLinearVelocity(0.0f, 0.0f);

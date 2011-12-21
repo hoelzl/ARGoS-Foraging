@@ -7,6 +7,7 @@
 #include <argos2/common/utility/math/range.h>
 #include <argos2/common/utility/argos_random.h>
 
+#include <controllers/footbot_foraging/state.h>
 #include <controllers/footbot_foraging/footbot_foraging.h>
 
 
@@ -51,6 +52,7 @@ class CForagingLoopFunctions : public CLoopFunctions {
   // The output file and stream for aggregated results
   std::string strSummaryOutput;
   std::ofstream SummaryOutput;
+  void InitializeSummaryData();
   void AddSummaryData(CFootBotEntity *footBot, CFootBotForaging *controller);
   void WriteSummaryOutput();
 

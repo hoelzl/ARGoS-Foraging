@@ -11,25 +11,27 @@
 
 //  Include some necessary headers.
 
-//  Support for generating runtime traces. 
+// Definition of the state enumeration.
+#include "state.h"
+// Support for generating runtime traces. 
 #include "trace_message.h"
-//  Definition of the CCI_Controller class. 
+// Definition of the CCI_Controller class. 
 #include <argos2/common/control_interface/ci_controller.h>
-//  Definition of the foot-bot wheel actuator 
+// Definition of the foot-bot wheel actuator 
 #include <argos2/common/control_interface/swarmanoid/footbot/ci_footbot_wheels_actuator.h>
-//  Definition of the foot-bot LEDs actuator 
+// Definition of the foot-bot LEDs actuator 
 #include <argos2/common/control_interface/swarmanoid/footbot/ci_footbot_leds_actuator.h>
-//  Definition of the range and bearing actuator 
+// Definition of the range and bearing actuator 
 #include <argos2/common/control_interface/swarmanoid/ci_range_and_bearing_actuator.h>
-//  Definition of the range and bearing sensor 
+// Definition of the range and bearing sensor 
 #include <argos2/common/control_interface/swarmanoid/ci_range_and_bearing_sensor.h>
-//  Definition of the foot-bot proximity sensor 
+// Definition of the foot-bot proximity sensor 
 #include <argos2/common/control_interface/swarmanoid/footbot/ci_footbot_proximity_sensor.h>
-//  Definition of the foot-bot light sensor 
+// Definition of the foot-bot light sensor 
 #include <argos2/common/control_interface/swarmanoid/footbot/ci_footbot_light_sensor.h>
-//  Definition of the foot-bot motor ground sensor 
+// Definition of the foot-bot motor ground sensor 
 #include <argos2/common/control_interface/swarmanoid/footbot/ci_footbot_motor_ground_sensor.h>
-//  Definitions for random number generation 
+// Definitions for random number generation 
 #include <argos2/common/utility/argos_random.h>
 
 using namespace argos;
@@ -106,14 +108,7 @@ class CFootBotForaging : public CCI_Controller {
   struct SStateData {
 
     // The three possible states in which the controller can be 
-    enum EState {
-      STATE_RESTING = 0,
-      STATE_EXPLORING,
-      STATE_PICK_UP_ITEM,
-      STATE_RETURN_TO_NEST,
-      STATE_DROP_ITEM,
-      STATE_SEARCH_RESTING_PLACE
-    };
+
     EState State;
     EState PreviousState;
 
@@ -177,17 +172,17 @@ class CFootBotForaging : public CCI_Controller {
 
   //  Returns true if the robot is currently exploring.
   inline bool IsExploring() const {
-    return StateData.State == SStateData::STATE_EXPLORING;
+    return StateData.State == EXPLORING;
   }
 
   //  Returns true if the robot is currently resting.
   inline bool IsResting() const {
-    return StateData.State == SStateData::STATE_RESTING;
+    return StateData.State == RESTING;
   }
 
   //  Returns true if the robot is currently returning to the nest.
   inline bool IsReturningToNest() const {
-    return StateData.State == SStateData::STATE_RETURN_TO_NEST;
+    return StateData.State == RETURNING_TO_NEST;
   }
 
   //  Returns the food data
@@ -198,6 +193,11 @@ class CFootBotForaging : public CCI_Controller {
   //  Returns the Id
   inline UInt32 GetId() {
     return Id;
+  }
+
+  // Returns the State
+  inline EState GetState() {
+    return StateData.State;
   }
 
   //  Returns the tracing messages for this robot
@@ -213,7 +213,7 @@ class CFootBotForaging : public CCI_Controller {
  private:
 
   // Updates the state information.
-  // In pratice, it sets the SStateData::InNest flag.  Future, more
+  // In pratice, it sets the InNest flag.  Future, more
   // complex implementations should add their state update code here.
   void UpdateState();
 
