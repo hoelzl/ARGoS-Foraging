@@ -33,8 +33,8 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
     UInt32 unFoodItems;
     GetNodeAttribute(tForaging, "items", unFoodItems);
     /* Get the number of food items we want to be scattered from XML */
-    GetNodeAttribute(tForaging, "radius", m_fFoodSquareRadius);
-    m_fFoodSquareRadius *= m_fFoodSquareRadius;
+    GetNodeAttribute(tForaging, "radius", FoodSquareRadius);
+    FoodSquareRadius *= FoodSquareRadius;
     /* Create a new RNG */
     RNG = CARGoSRandom::CreateRNG("argos");
     /* Distribute uniformly the items in the environment */
@@ -44,9 +44,9 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
 				    RNG->Uniform(ForagingArenaSideY)));
     }
     /* Get the mean time for food drops from XML */
-    GetNodeAttribute(tForaging, "food_drop_mean", m_fFoodDropMean);
+    GetNodeAttribute(tForaging, "food_drop_mean", FoodDropMean);
     /* Initialize the next food drop */
-    NextFoodDrop = RNG->Exponential(m_fFoodDropMean);
+    NextFoodDrop = RNG->Exponential(FoodDropMean);
     /* Get the output file name from XML */
     GetNodeAttribute(tForaging, "output", strOutput);
     /* Open the file, erasing its contents */
@@ -67,7 +67,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
 
 void CForagingLoopFunctions::Reset() {
   /* Reset the next drop time */
-  NextFoodDrop = RNG->Exponential(m_fFoodDropMean);
+  NextFoodDrop = RNG->Exponential(FoodDropMean);
   
   /* Zero the counters */
   CollectedFood = 0;
@@ -100,7 +100,7 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane
     return CColor::GRAY50;
   }
   for(UInt32 i = 0; i < FoodPos.size(); ++i) {
-    if((c_position_on_plane - FoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
+    if((c_position_on_plane - FoodPos[i]).SquareLength() < FoodSquareRadius) {
       return CColor::BLACK;
     }
   }
@@ -121,7 +121,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
   UInt32 unCurrentClock = Space().GetSimulationClock();
   if (unCurrentClock >= NextFoodDrop) {
     // Determine the time for the next food drop
-    NextFoodDrop += RNG->Exponential(m_fFoodDropMean);
+    NextFoodDrop += RNG->Exponential(FoodDropMean);
     // Drop a new food item
     FoodPos.push_back(CVector2(RNG->Uniform(ForagingArenaSideX),
 				  RNG->Uniform(ForagingArenaSideY)));
@@ -189,7 +189,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	/* Check whether the foot-bot is on a food item */
 	bool bDone = false;
 	for(size_t i = 0; i < FoodPos.size() && !bDone; ++i) {
-	  if((cPos - FoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
+	  if((cPos - FoodPos[i]).SquareLength() < FoodSquareRadius) {
 	    /* If so, we delete that item */
 	    std::vector<CVector2>::iterator it = FoodPos.begin();
 	    advance(it, i);

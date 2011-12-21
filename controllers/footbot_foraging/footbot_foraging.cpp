@@ -188,7 +188,7 @@ void CFootBotForaging::Reset() {
    /* Set LED color */
    LEDs->SetAllColors(CColor::RED);
    /* Clear up the last exploration result */
-   m_eLastExplorationResult = LAST_EXPLORATION_NONE;
+   LastExplorationResult = LAST_EXPLORATION_NONE;
    TRangeAndBearingReceivedPacket::TRangeAndBearingData tData;
    tData[0] = LAST_EXPLORATION_NONE;
    RABA->SetData(tData);

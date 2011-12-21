@@ -28,7 +28,7 @@ class CForagingLoopFunctions : public CLoopFunctions {
     return m_cSpace;
   }
   
-  Real m_fFoodSquareRadius;
+  Real FoodSquareRadius;
   CRange<Real> ForagingArenaSideX, ForagingArenaSideY;
   std::vector<CVector2> FoodPos;
   CFloorEntity* Floor;
@@ -40,7 +40,7 @@ class CForagingLoopFunctions : public CLoopFunctions {
   // The time when the next food item should be dropped
   UInt32 NextFoodDrop;
   // The mean value for the exponential distributions between food drops
-  Real m_fFoodDropMean;
+  Real FoodDropMean;
   
   UInt32 CollectedFood;
   SInt64 Energy;

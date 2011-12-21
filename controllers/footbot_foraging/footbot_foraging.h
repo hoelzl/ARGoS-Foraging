@@ -317,7 +317,7 @@ class CFootBotForaging : public CCI_Controller {
     LAST_EXPLORATION_NONE = 0,    // nothing to report
     LAST_EXPLORATION_SUCCESSFUL,  // the last exploration resulted in a food item found
     LAST_EXPLORATION_UNSUCCESSFUL // no food found in the last exploration
-  } m_eLastExplorationResult;
+  } LastExplorationResult;
 
   /* The controller state information */
   SStateData StateData;
