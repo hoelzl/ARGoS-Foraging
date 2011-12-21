@@ -243,49 +243,51 @@ CVector2 CFootBotForaging::CalculateVectorToLight() {
    }
    //  Otherwise, return zero 
    else {
-      return CVector2();
+     LOGERR << "Cannot perceive light" << std::endl;
+     return CVector2();
    }
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-CVector2 CFootBotForaging::DiffusionVector(bool& b_collision) {
+CVector2 CFootBotForaging::DiffusionVector(bool& collision) {
   // Get readings from proximity sensor
   const CCI_FootBotProximitySensor::TReadings& tProxReads
     = Proximity->GetReadings();
   // Sum them together
-  CVector2 cDiffusionVector;
+  CVector2 diffusionVector;
   for(size_t i = 0; i < tProxReads.size(); ++i) {
-    cDiffusionVector += CVector2(tProxReads[i].Value, tProxReads[i].Angle);
+    diffusionVector += CVector2(tProxReads[i].Value, tProxReads[i].Angle);
   }
   // If the angle of the vector is small enough and the closest
   // obstacle is far enough, ignore the vector and go straight,
   // otherwise return it.
-  if(DiffusionParams.GoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cDiffusionVector.Angle()) &&
-     cDiffusionVector.Length() < DiffusionParams.Delta ) {
-    b_collision = false;
+  if(DiffusionParams.GoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(diffusionVector.Angle()) &&
+     diffusionVector.Length() < DiffusionParams.Delta ) {
+    collision = false;
     return CVector2::X;
   }
   else {
-    b_collision = true;
-    cDiffusionVector.Normalize();
-    return -cDiffusionVector;
+    collision = true;
+    diffusionVector.Normalize();
+    return -diffusionVector;
   }
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
+void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& heading) {
   // Get the heading angle
-  CRadians cHeadingAngle = c_heading.Angle().SignedNormalize();
+  CRadians cHeadingAngle = heading.Angle().SignedNormalize();
   // Get the length of the heading vector
-  Real fHeadingLength = c_heading.Length();
+  Real fHeadingLength = heading.Length();
   // Clamp the speed so that it's not greater than MaxSpeed
   Real fBaseAngularWheelSpeed = Min<Real>(fHeadingLength, WheelTurningParams.MaxSpeed);
 
-  SWheelTurningParams::ETurningMechanism oldTurningMechanism = WheelTurningParams.TurningMechanism;
+  SWheelTurningParams::ETurningMechanism oldTurningMechanism
+    = WheelTurningParams.TurningMechanism;
   // Turning state switching conditions
   if(Abs(cHeadingAngle) <= WheelTurningParams.NoTurnAngleThreshold) {
     // No Turn, heading angle very small
@@ -422,15 +424,17 @@ void CFootBotForaging::StartResting() {
 ////////////////////////////////////////////////////////////////////////
 
 void CFootBotForaging::Explore() {
-  // We return to the nest when we have picked up a food item.
+  // This should be implemented differently: check whether we are on a
+  // food item, and if so, pick it up.  Right now the loop function
+  // sets HasFoodItem, which is totally wrong. --tc
   if (FoodData.HasFoodItem) {
     PickUpItem();
     return;
   }
   else {
     // Get the diffusion vector to perform obstacle avoidance
-    bool bCollision;
-    CVector2 cDiffusion = DiffusionVector(bCollision);
+    bool collision;
+    CVector2 diffusion = DiffusionVector(collision);
     // If we are in the nest, we combine antiphototaxis with obstacle
     // avoidance. Outside the nest, we just use the diffusion vector
     if(StateData.InNest) {
@@ -439,11 +443,11 @@ void CFootBotForaging::Explore() {
       // from the light.
       SetWheelSpeedsFromVector
 	(WheelTurningParams.MaxSpeed *
-	 (cDiffusion - 0.5 * CalculateVectorToLight()));
+	 (diffusion - 0.5 * CalculateVectorToLight()));
     }
     else {
       // Use the diffusion vector only
-      SetWheelSpeedsFromVector(WheelTurningParams.MaxSpeed * cDiffusion);
+      SetWheelSpeedsFromVector(WheelTurningParams.MaxSpeed * diffusion);
     }
   }
 }
