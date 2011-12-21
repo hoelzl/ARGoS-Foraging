@@ -43,18 +43,10 @@
                        soft_turn_angle_threshold="70"
                        no_turn_angle_threshold="10"
                        max_speed="10" />
-        <state initial_rest_to_explore_prob="0.4"
-               initial_explore_to_rest_prob="0.1"
-               food_rule_explore_to_rest_delta_prob="0.01"
-               food_rule_rest_to_explore_delta_prob="0.01"
-               collision_rule_explore_to_rest_delta_prob="0.01"
-               social_rule_explore_to_rest_delta_prob="0.00"
-               social_rule_rest_to_explore_delta_prob="0.00"
+        <state rest_to_explore_mean="20"
                minimum_resting_time="1"
-               minimum_unsuccessful_explore_time="60000"
                minimum_search_for_place_in_nest_time="50">
-          <food_rule active="true" food_rule_explore_to_rest_delta_prob="0.01" />
-        </state>
+	</state>
       </parameters>
     </footbot_foraging_controller>
 

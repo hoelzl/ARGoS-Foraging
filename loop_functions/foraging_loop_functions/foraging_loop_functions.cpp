@@ -167,9 +167,6 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
       // performed by the robot! --tc
       if(cPos.GetX() < -1.0f) {
 	/* Place a new food item on the ground */
-	/* m_cFoodPos[sFoodData.FoodItemIdx].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
-					      m_pcRNG->Uniform(m_cForagingArenaSideY));
-	*/
 	/* Drop the food item */
 	sFoodData.HasFoodItem = false;
 	++sFoodData.TotalFoodItems;

@@ -28,6 +28,32 @@ std::string CExploreTrace::Format(UInt32 time) {
   return result.str();
 }
 
+
+CReturnTrace::CReturnTrace(UInt32 robotId) :
+  CTraceMessage(robotId) {}
+
+std::string CReturnTrace::Format(UInt32 time) {
+  std::stringstream result;
+  result << time << ","
+	 << m_unRobotId << ","
+	 << RETURN_TO_NEST;
+  return result.str();
+}
+
+
+
+CRestTrace::CRestTrace(UInt32 robotId) :
+  CTraceMessage(robotId) {}
+
+std::string CRestTrace::Format(UInt32 time) {
+  std::stringstream result;
+  result << time << ","
+	 << m_unRobotId << ","
+	 << REST;
+  return result.str();
+}
+
+
 CCollisionTrace::CCollisionTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
@@ -39,6 +65,7 @@ std::string CCollisionTrace::Format(UInt32 time) {
   return result.str();
 }
 
+
 CPickUpItemTrace::CPickUpItemTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
@@ -49,6 +76,7 @@ std::string CPickUpItemTrace::Format(UInt32 time) {
 	 << PICK_UP_ITEM;
   return result.str();
 }
+
 
 CDropItemTrace::CDropItemTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
