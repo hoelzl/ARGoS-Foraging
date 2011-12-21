@@ -7,25 +7,28 @@
 using namespace argos;
 
 enum EMessageType {
-  // This message tells us that new control loop has started.
-  // Mostly useful for debugging purposes.
-  CONTROL_LOOP_START = 0,
-  EXPLORE            = 1,
-  RETURN_TO_NEST     = 2,
-  REST               = 3,
-  COLLISION          = 4,
-  PICK_UP_ITEM       = 5,
-  DROP_ITEM          = 6,
+  EXPLORE              = 0,
+  PICK_UP_ITEM         = 1,
+  RETURN_TO_NEST       = 2,
+  DROP_ITEM            = 3,
+  SEARCH_RESTING_PLACE = 4,
+  REST                 = 5,
+  COLLISION            = 6,
+  // The size for an array indexed by (non-debugging) message types.
+  MESSAGE_TYPE_SIZE,
   // Some debugging messages
-  MESSAGE_QUEUE_LENGTH = -1
+  CONTROL_LOOP_START = -1,
+  MESSAGE_QUEUE_LENGTH = -2
 };
 
 // A single log message
 //
 class CTraceMessage {
  public:
+  // What type of message is this?
+  virtual EMessageType GetMessageType() = 0;
   // The string that should be written to the trace output
-  virtual std::string Format(UInt32 time) = 0; 
+  virtual std::string Format(UInt32 time); 
   // The Id of the robot, as string
   std::string GetRobotId();
   // Constructor and destructor
@@ -34,43 +37,49 @@ class CTraceMessage {
 
  protected:
   // Id of the robot doing the logging
-  UInt32 RobotId;              
+  UInt32 RobotId;
 };
 
 class CExploreTrace : public CTraceMessage {
  public:
+  EMessageType GetMessageType();
   CExploreTrace(UInt32 robotId);
-  std::string Format(UInt32 time);
-};
-
-class CReturnTrace : public CTraceMessage {
- public:
-  CReturnTrace(UInt32 robotId);
-  std::string Format(UInt32 time);
-};
-
-class CRestTrace : public CTraceMessage {
- public:
-  CRestTrace(UInt32 robotId);
-  std::string Format(UInt32 time);
-};
-
-class CCollisionTrace : public CTraceMessage {
- public:
-  CCollisionTrace(UInt32 robotId);
-  std::string Format(UInt32 time);
 };
 
 class CPickUpItemTrace : public CTraceMessage {
  public:
+  EMessageType GetMessageType();
   CPickUpItemTrace(UInt32 robotId);
-  std::string Format(UInt32 time);
+};
+
+class CReturnTrace : public CTraceMessage {
+ public:
+  EMessageType GetMessageType();
+  CReturnTrace(UInt32 robotId);
 };
 
 class CDropItemTrace : public CTraceMessage {
  public:
+  EMessageType GetMessageType();
   CDropItemTrace(UInt32 robotId);
-  std::string Format(UInt32 time);
+};
+
+class CSearchRestingPlaceTrace : public CTraceMessage {
+ public:
+  EMessageType GetMessageType();
+  CSearchRestingPlaceTrace(UInt32 robotId);
+};
+
+class CRestTrace : public CTraceMessage {
+ public:
+  EMessageType GetMessageType();
+  CRestTrace(UInt32 robotId);
+};
+
+class CCollisionTrace : public CTraceMessage {
+ public:
+  EMessageType GetMessageType();
+  CCollisionTrace(UInt32 robotId);
 };
 
 #endif /* TRACE_MESSAGE_H */

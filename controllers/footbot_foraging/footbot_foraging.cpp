@@ -1,10 +1,10 @@
-/* Include the controller definition */
+//  Include the controller definition 
 #include "footbot_foraging.h"
-/* Function definitions for XML parsing */
+//  Function definitions for XML parsing 
 #include <argos2/common/utility/configuration/argos_configuration.h>
-/* 2D vector definition */
+//  2D vector definition 
 #include <argos2/common/utility/math/vector2.h>
-/* Logging */
+//  Logging 
 #include <argos2/common/utility/logging/argos_log.h>
 
 ////////////////////////////////////////////////////////////////////////
@@ -115,14 +115,14 @@ UInt32 CFootBotForaging::s_unIdCounter = 0;
 
 void CFootBotForaging::Init(TConfigurationNode& t_node) {
    try {
-     /*
-      * Set Id
-      */
+     // 
+     //  Set Id
+     // /
      Id = s_unIdCounter++;
 
-      /*
-       * Initialize sensors/actuators
-       */
+      // 
+      //  Initialize sensors/actuators
+      // /
       Wheels    = dynamic_cast<CCI_FootBotWheelsActuator* >  (GetRobot().GetActuator("footbot_wheels"      ));
       LEDs      = dynamic_cast<CCI_FootBotLedsActuator* >    (GetRobot().GetActuator("footbot_leds"        ));
       RABA      = dynamic_cast<CCI_RangeAndBearingActuator*> (GetRobot().GetActuator("range_and_bearing"   ));
@@ -130,23 +130,22 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
       Proximity = dynamic_cast<CCI_FootBotProximitySensor*>  (GetRobot().GetSensor  ("footbot_proximity"   ));
       Light     = dynamic_cast<CCI_FootBotLightSensor*>      (GetRobot().GetSensor  ("footbot_light"       ));
       Ground    = dynamic_cast<CCI_FootBotMotorGroundSensor*>(GetRobot().GetSensor  ("footbot_motor_ground"));
-      /*
-       * Parse XML parameters
-       */
-      /* Diffusion algorithm */
+      // 
+      //  Parse XML parameters
+      // /
+      //  Diffusion algorithm 
       DiffusionParams.Init(GetNode(t_node, "diffusion"));
-      /* Wheel turning */
+      //  Wheel turning 
       WheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
-      /* Controller state */
+      //  Controller state 
       StateData.Init(GetNode(t_node, "state"));
    }
    catch(CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing the foot-bot foraging controller for robot \"" << GetRobot().GetRobotId() << "\"", ex);
    }
-   /*
-    * Initialize other stuff
-    */
-   /* Create a random number generator. We use the 'argos' category so that creation, reset, seeding and cleanup are managed by ARGoS. */
+   // Initialize other stuff
+   // Create a random number generator. We use the 'argos' category so
+   // that creation, reset, seeding and cleanup are managed by ARGoS.
    RNG = CARGoSRandom::CreateRNG("argos");
    Reset();
 }
@@ -165,8 +164,20 @@ void CFootBotForaging::ControlStep() {
     Explore();
     break;
   }
+  case SStateData::STATE_PICK_UP_ITEM: {
+    StartReturningToNest();
+    break;
+  }
   case SStateData::STATE_RETURN_TO_NEST: {
     ReturnToNest();
+    break;
+  }
+  case SStateData::STATE_DROP_ITEM: {
+    StartSearchingForRestingPlace();
+    break;
+  }
+  case SStateData::STATE_SEARCH_RESTING_PLACE: {
+    SearchForRestingPlace();
     break;
   }
   default: {
@@ -180,38 +191,33 @@ void CFootBotForaging::ControlStep() {
 ////////////////////////////////////////////////////////////////////////
 
 void CFootBotForaging::Reset() {
-   /* Reset robot state */
+   //  Reset robot state 
    StateData.Reset();
-   /* Reset food data */
+   //  Reset food data 
    FoodData.Reset();
-   /* Set LED color */
+   //  Set LED color 
    LEDs->SetAllColors(CColor::RED);
-   /* Clear up the last exploration result */
-   LastExplorationResult = LAST_EXPLORATION_NONE;
-   TRangeAndBearingReceivedPacket::TRangeAndBearingData tData;
-   tData[0] = LAST_EXPLORATION_NONE;
-   RABA->SetData(tData);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
 void CFootBotForaging::UpdateState() {
-   /* Reset state flags */
+   // Reset state flags 
    StateData.InNest = false;
-   /* Read stuff from the ground sensor */
+   // Read stuff from the ground sensor 
    const CCI_FootBotMotorGroundSensor::TReadings& tGroundReads = Ground->GetReadings();
-   /*
-    * You can say whether you are in the nest by checking the ground sensor
-    * placed close to the wheel motors. It returns a value between 0 and 1.
-    * It is 1 when the robot is on a white area, it is 0 when the robot
-    * is on a black area and it is around 0.5 when the robot is on a gray area. 
-    * The foot-bot has 4 sensors like this, two in the front
-    * (corresponding to readings 0 and 1) and two in the back (corresponding
-    * to reading 2 and 3).  Here we want the back sensors (readings 2 and 3) to
-    * tell us whether we are on gray: if so, the robot is completely in the nest,
-    * otherwise it's outside.
-    */
+
+   // You can say whether you are in the nest by checking the ground
+   // sensor placed close to the wheel motors. It returns a value
+   // between 0 and 1.  It is 1 when the robot is on a white area, it
+   // is 0 when the robot is on a black area and it is around 0.5 when
+   // the robot is on a gray area.  The foot-bot has 4 sensors like
+   // this, two in the front (corresponding to readings 0 and 1) and
+   // two in the back (corresponding to reading 2 and 3).  Here we
+   // want the back sensors (readings 2 and 3) to tell us whether we
+   // are on gray: if so, the robot is completely in the nest,
+   // otherwise it's outside.
    if(tGroundReads[2].Value > 0.25f &&
       tGroundReads[2].Value < 0.75f &&
       tGroundReads[3].Value > 0.25f &&
@@ -219,22 +225,23 @@ void CFootBotForaging::UpdateState() {
       StateData.InNest = true;
    }
 }
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
 CVector2 CFootBotForaging::CalculateVectorToLight() {
-   /* Get readings from light sensor */
+   //  Get readings from light sensor 
    const CCI_FootBotLightSensor::TReadings& tLightReads = Light->GetReadings();
-   /* Sum them together */
+   //  Sum them together 
    CVector2 cAccumulator;
    for(size_t i = 0; i < tLightReads.size(); ++i) {
       cAccumulator += CVector2(tLightReads[i].Value, tLightReads[i].Angle);
    }
-   /* If the light was perceived, return the vector */
+   //  If the light was perceived, return the vector 
    if(cAccumulator.Length() > 0.0f) {
       return CVector2(1.0f, cAccumulator.Angle());
    }
-   /* Otherwise, return zero */
+   //  Otherwise, return zero 
    else {
       return CVector2();
    }
@@ -290,7 +297,7 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
   }
   else if(WheelTurningParams.TurningMechanism == SWheelTurningParams::NO_TURN &&
 	  Abs(cHeadingAngle) > WheelTurningParams.SoftTurnOnAngleThreshold) {
-    // Soft Turn, heading angle in between the two cases */
+    // Soft Turn, heading angle in between the two cases
     WheelTurningParams.TurningMechanism = SWheelTurningParams::SOFT_TURN;
   }
   if (WheelTurningParams.TurningMechanism != SWheelTurningParams::NO_TURN &&
@@ -343,19 +350,6 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-void CFootBotForaging::StartResting() {
-  if (StateData.State == SStateData::STATE_RESTING) {
-    LOGERR << "Trying to start resting when already in STATE_RESTING"
-	   << std::endl;
-  }
-  StateData.SaveState();
-  StateData.State = SStateData::STATE_RESTING;
-  LEDs->SetAllColors(CColor::RED);
-  TraceMessages.push_back(new CRestTrace(Id));
-  Wheels->SetLinearVelocity(0.0f, 0.0f);
-  StateData.SetNewWakeUpTime(RNG->Exponential(StateData.RestToExploreMean));
-}
-
 void CFootBotForaging::StartExploring() {
   if (StateData.State == SStateData::STATE_EXPLORING) {
     LOGERR << "Trying to start exploring when already in STATE_EXPLORING"
@@ -365,6 +359,17 @@ void CFootBotForaging::StartExploring() {
   StateData.State = SStateData::STATE_EXPLORING;
   LEDs->SetAllColors(CColor::GREEN);
   TraceMessages.push_back(new CExploreTrace(Id));
+}
+
+void CFootBotForaging::PickUpItem() {
+  if (StateData.State == SStateData::STATE_PICK_UP_ITEM) {
+    LOGERR << "Trying to pick up an item when already in STATE_PICK_UP_ITEM"
+	   << std::endl;
+  }
+  StateData.SaveState();
+  StateData.State = SStateData::STATE_PICK_UP_ITEM;
+  LEDs->SetAllColors(CColor::YELLOW);
+  TraceMessages.push_back(new CPickUpItemTrace(Id));
 }
 
 void CFootBotForaging::StartReturningToNest() {
@@ -378,25 +383,48 @@ void CFootBotForaging::StartReturningToNest() {
   TraceMessages.push_back(new CReturnTrace(Id));
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-
-void CFootBotForaging::Rest() {
-  if (StateData.RestingPeriodIsOver()) {
-    StartExploring();
+void CFootBotForaging::DropItem() {
+  if (StateData.State == SStateData::STATE_DROP_ITEM) {
+    LOGERR << "Trying to drop an item when already in STATE_DROP_ITEM"
+	   << std::endl;
   }
-  else {
-    ++StateData.TimeRested;
-  }
+  StateData.SaveState();
+  StateData.State = SStateData::STATE_DROP_ITEM;
+  LEDs->SetAllColors(CColor::YELLOW);
+  TraceMessages.push_back(new CDropItemTrace(Id));
 }
 
-/****************************************/
-/****************************************/
+void CFootBotForaging::StartSearchingForRestingPlace() {
+  if (StateData.State == SStateData::STATE_SEARCH_RESTING_PLACE) {
+    LOGERR << "Trying to search a resting place when already in STATE_SEARCH_RESTING_PLACE"
+	   << std::endl;
+  }
+  StateData.SaveState();
+  StateData.State = SStateData::STATE_SEARCH_RESTING_PLACE;
+  LEDs->SetAllColors(CColor::MAGENTA);
+  TraceMessages.push_back(new CSearchRestingPlaceTrace(Id));
+}
+
+void CFootBotForaging::StartResting() {
+  if (StateData.State == SStateData::STATE_RESTING) {
+    LOGERR << "Trying to start resting when already in STATE_RESTING"
+	   << std::endl;
+  }
+  StateData.SaveState();
+  StateData.State = SStateData::STATE_RESTING;
+  LEDs->SetAllColors(CColor::RED);
+  TraceMessages.push_back(new CRestTrace(Id));
+  Wheels->SetLinearVelocity(0.0f, 0.0f);
+  StateData.SetNewWakeUpTime(RNG->Exponential(StateData.RestToExploreMean));
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 
 void CFootBotForaging::Explore() {
   // We return to the nest when we have picked up a food item.
   if (FoodData.HasFoodItem) {
-    StartReturningToNest();
+    PickUpItem();
     return;
   }
   else {
@@ -409,9 +437,9 @@ void CFootBotForaging::Explore() {
       // The vector returned by CalculateVectorToLight() points to the
       // light. Thus, the minus sign is because we want to go away
       // from the light.
-      SetWheelSpeedsFromVector(
-        WheelTurningParams.MaxSpeed * cDiffusion -
-	WheelTurningParams.MaxSpeed * 0.25f * CalculateVectorToLight());
+      SetWheelSpeedsFromVector
+	(WheelTurningParams.MaxSpeed *
+	 (cDiffusion - 0.5 * CalculateVectorToLight()));
     }
     else {
       // Use the diffusion vector only
@@ -426,26 +454,38 @@ void CFootBotForaging::Explore() {
 void CFootBotForaging::ReturnToNest() {
   // Are we in the nest?
   if(StateData.InNest) {
-    // Have we looked for a place long enough?
-    if(StateData.TimeSearchingForPlaceInNest > StateData.MinimumSearchForPlaceInNestTime) {
-      // Yes, rest
-      StartResting();
-      return;
-    }
-    else {
-      /* No, keep looking */
-      ++StateData.TimeSearchingForPlaceInNest;
-    }
+    DropItem();
   }
   else {
-    /* Still outside the nest */
-    StateData.TimeSearchingForPlaceInNest = 0;
+    bool collision;
+    SetWheelSpeedsFromVector
+      (WheelTurningParams.MaxSpeed * 0.5 *
+       (DiffusionVector(collision) + CalculateVectorToLight()));
   }
-  /* Keep going */
-  bool bCollision;
-  SetWheelSpeedsFromVector(
-    WheelTurningParams.MaxSpeed * DiffusionVector(bCollision) +
-    WheelTurningParams.MaxSpeed * CalculateVectorToLight());
+}
+
+void CFootBotForaging::SearchForRestingPlace() {
+  // Have we looked for a place long enough?
+  if(StateData.TimeSearchingForPlaceInNest > StateData.MinimumSearchForPlaceInNestTime) {
+    // Yes, rest
+    StartResting();
+  }
+  else {
+    // No, keep looking 
+    ++StateData.TimeSearchingForPlaceInNest;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+void CFootBotForaging::Rest() {
+  if (StateData.RestingPeriodIsOver()) {
+    StartExploring();
+  }
+  else {
+    ++StateData.TimeRested;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////

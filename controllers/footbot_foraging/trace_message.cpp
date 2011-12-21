@@ -10,6 +10,14 @@ CTraceMessage::CTraceMessage(UInt32 robotId) :
 CTraceMessage::~CTraceMessage() {
 }
 
+std::string CTraceMessage::Format(UInt32 time) {
+  std::stringstream result;
+  result << time << ","
+	 << RobotId << ","
+	 << GetMessageType();
+  return result.str();
+}
+
 std::string CTraceMessage::GetRobotId() {
   std::stringstream result;
   result << RobotId;
@@ -20,72 +28,55 @@ std::string CTraceMessage::GetRobotId() {
 CExploreTrace::CExploreTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-std::string CExploreTrace::Format(UInt32 time) {
-  std::stringstream result;
-  result << time << ","
-	 << RobotId << ","
-	 << EXPLORE;
-  return result.str();
-}
-
-
-CReturnTrace::CReturnTrace(UInt32 robotId) :
-  CTraceMessage(robotId) {}
-
-std::string CReturnTrace::Format(UInt32 time) {
-  std::stringstream result;
-  result << time << ","
-	 << RobotId << ","
-	 << RETURN_TO_NEST;
-  return result.str();
-}
-
-
-
-CRestTrace::CRestTrace(UInt32 robotId) :
-  CTraceMessage(robotId) {}
-
-std::string CRestTrace::Format(UInt32 time) {
-  std::stringstream result;
-  result << time << ","
-	 << RobotId << ","
-	 << REST;
-  return result.str();
-}
-
-
-CCollisionTrace::CCollisionTrace(UInt32 robotId) :
-  CTraceMessage(robotId) {}
-
-std::string CCollisionTrace::Format(UInt32 time) {
-  std::stringstream result;
-  result << time << ","
-	 << RobotId << ","
-	 << COLLISION;
-  return result.str();
+EMessageType CExploreTrace::GetMessageType() {
+  return EXPLORE;
 }
 
 
 CPickUpItemTrace::CPickUpItemTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-std::string CPickUpItemTrace::Format(UInt32 time) {
-  std::stringstream result;
-  result << time << ","
-	 << RobotId << ","
-	 << PICK_UP_ITEM;
-  return result.str();
+EMessageType CPickUpItemTrace::GetMessageType() {
+  return PICK_UP_ITEM;
+}
+
+
+CReturnTrace::CReturnTrace(UInt32 robotId) :
+  CTraceMessage(robotId) {}
+
+EMessageType CReturnTrace::GetMessageType() {
+  return RETURN_TO_NEST;
 }
 
 
 CDropItemTrace::CDropItemTrace(UInt32 robotId) :
   CTraceMessage(robotId) {}
 
-std::string CDropItemTrace::Format(UInt32 time) {
-  std::stringstream result;
-  result << time << ","
-	 << RobotId << ","
-	 << DROP_ITEM;
-  return result.str();
+EMessageType CDropItemTrace::GetMessageType() {
+  return DROP_ITEM;
+}
+
+
+CSearchRestingPlaceTrace::CSearchRestingPlaceTrace(UInt32 robotId) :
+  CTraceMessage(robotId) {}
+
+EMessageType CSearchRestingPlaceTrace::GetMessageType() {
+  return SEARCH_RESTING_PLACE;
+}
+
+
+CRestTrace::CRestTrace(UInt32 robotId) :
+  CTraceMessage(robotId) {}
+
+EMessageType CRestTrace::GetMessageType() {
+  return REST;
+}
+
+
+CCollisionTrace::CCollisionTrace(UInt32 robotId) :
+  CTraceMessage(robotId) {}
+
+EMessageType CCollisionTrace::GetMessageType() {
+  return COLLISION;
 }
 

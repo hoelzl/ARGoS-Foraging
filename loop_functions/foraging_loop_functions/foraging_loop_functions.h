@@ -51,19 +51,21 @@ class CForagingLoopFunctions : public CLoopFunctions {
   // The output file and stream for aggregated results
   std::string strSummaryOutput;
   std::ofstream SummaryOutput;
-  void WriteSummaryMessages();
+  void AddSummaryData(CFootBotEntity *footBot, CFootBotForaging *controller);
+  void WriteSummaryOutput();
 
+  void ClearAllMessages(CFootBotForaging *controller);
   void FlushOutputStreams();
   
+  // The number of foot items in the arena at the start of the experiment
+  UInt32 InitialFoodItems;
   // The time when the next food item should be dropped
   UInt32 NextFoodDrop;
   // The mean value for the exponential distributions between food drops
   Real FoodDropMean;
   
-  UInt32 CollectedFood;
-  SInt64 Energy;
-  UInt32 EnergyPerFoodItem;
-  UInt32 EnergyPerWalkingRobot;
+  // Summary of all events that occurred.
+  std::vector<UInt32> AggregatedEvents;
 };
 
 #endif
