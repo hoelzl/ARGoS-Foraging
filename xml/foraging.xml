@@ -64,6 +64,7 @@
               energy_per_walking_robot="1"
               trace_output="foraging.csv"
 	      collision_output="collisions.csv"
+	      id_for_collision_output="1"
 	      summary_output="summary.csv"/>
   </loop_functions>
 

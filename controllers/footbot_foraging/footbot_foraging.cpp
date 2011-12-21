@@ -293,7 +293,8 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
     // Soft Turn, heading angle in between the two cases */
     WheelTurningParams.TurningMechanism = SWheelTurningParams::SOFT_TURN;
   }
-  if (oldTurningMechanism != WheelTurningParams.TurningMechanism) {
+  if (WheelTurningParams.TurningMechanism != SWheelTurningParams::NO_TURN &&
+      oldTurningMechanism != WheelTurningParams.TurningMechanism) {
     CollisionMessages.push_back(new CCollisionTrace(Id));
   }
   

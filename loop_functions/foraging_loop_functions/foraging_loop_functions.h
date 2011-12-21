@@ -7,6 +7,9 @@
 #include <argos2/common/utility/math/range.h>
 #include <argos2/common/utility/argos_random.h>
 
+#include <controllers/footbot_foraging/footbot_foraging.h>
+
+
 using namespace argos;
 
 class CForagingLoopFunctions : public CLoopFunctions {
@@ -33,15 +36,24 @@ class CForagingLoopFunctions : public CLoopFunctions {
   CFloorEntity* Floor;
   CARGoSRandom::CRNG* RNG;
   
-  // The trace and collision output files and streams
+  // The trace output files and streams
   std::string strTraceOutput;
   std::ofstream TraceOutput;
+  void WriteTraceMessages(CFootBotEntity *footBot, CFootBotForaging *controller);
+
+  // The id of the robot for which we are tracing collisions,
+  // and the collision output files and streams.
+  UInt32 IdForCollisionOutput;
   std::string strCollisionOutput;
   std::ofstream CollisionOutput;
+  void WriteCollisionMessages(CFootBotEntity *footBot, CFootBotForaging *controller);
 
   // The output file and stream for aggregated results
   std::string strSummaryOutput;
   std::ofstream SummaryOutput;
+  void WriteSummaryMessages();
+
+  void FlushOutputStreams();
   
   // The time when the next food item should be dropped
   UInt32 NextFoodDrop;

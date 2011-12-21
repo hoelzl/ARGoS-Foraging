@@ -1,10 +1,9 @@
 #include "foraging_loop_functions.h"
-#include "../../controllers/footbot_foraging/trace_message.h"
 #include <argos2/simulator/simulator.h>
 #include <argos2/common/utility/configuration/argos_configuration.h>
 #include <argos2/common/utility/datatypes/any.h>
 #include <argos2/simulator/space/entities/footbot_entity.h>
-#include <controllers/footbot_foraging/footbot_foraging.h>
+#include <controllers/footbot_foraging/trace_message.h>
 
 /****************************************/
 /****************************************/
@@ -29,12 +28,14 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
     TConfigurationNode& tForaging = GetNode(t_node, "foraging");
     /* Get a pointer to the floor entity */
     Floor = &Space().GetFloorEntity();
+
     /* Get the number of food items we want to be scattered from XML */
     UInt32 unFoodItems;
     GetNodeAttribute(tForaging, "items", unFoodItems);
     /* Get the number of food items we want to be scattered from XML */
     GetNodeAttribute(tForaging, "radius", FoodSquareRadius);
     FoodSquareRadius *= FoodSquareRadius;
+
     /* Create a new RNG */
     RNG = CARGoSRandom::CreateRNG("argos");
     /* Distribute uniformly the items in the environment */
@@ -54,13 +55,15 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
 		     std::ios_base::trunc | std::ios_base::out);
 
     /* Get the collision output file name from XML */
-    GetNodeAttribute(tForaging, "collision_output", strTraceOutput);
+    GetNodeAttribute(tForaging, "collision_output", strCollisionOutput);
     /* Open the file, erasing its contents */
     CollisionOutput.open(strCollisionOutput.c_str(),
 			 std::ios_base::trunc | std::ios_base::out);
+    // Get the id for the robot for which we are logging collisions
+    GetNodeAttribute(tForaging, "id_for_collision_output", IdForCollisionOutput);
 
     /* Get the summary output file name from XML */
-    GetNodeAttribute(tForaging, "summary_output", strTraceOutput);
+    GetNodeAttribute(tForaging, "summary_output", strSummaryOutput);
     /* Open the file, erasing its contents */
     SummaryOutput.open(strSummaryOutput.c_str(),
 		       std::ios_base::trunc | std::ios_base::out);
@@ -123,6 +126,42 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane
 /****************************************/
 /****************************************/
 
+void CForagingLoopFunctions::WriteTraceMessages(CFootBotEntity *footBot,
+						CFootBotForaging *controller) {
+  std::vector<CTraceMessage*> *traceMessages = controller->GetTraceMessages();
+  for (std::vector<CTraceMessage*>::iterator sit = traceMessages->begin();
+       sit != traceMessages->end();
+       ++sit) {
+    TraceOutput << (*sit)->Format(Space().GetSimulationClock())  << std::endl;
+  }
+  traceMessages->clear();
+
+}
+
+void CForagingLoopFunctions::WriteCollisionMessages(CFootBotEntity *footBot,
+						    CFootBotForaging *controller) {
+  std::vector<CTraceMessage*> *collisionMessages = controller->GetCollisionMessages();
+  if (controller->GetId() == IdForCollisionOutput) {
+    for (std::vector<CTraceMessage*>::iterator sit = collisionMessages->begin();
+	 sit != collisionMessages->end();
+	 ++sit) {
+      CollisionOutput << (*sit)->Format(Space().GetSimulationClock())  << std::endl;
+    }
+  }
+  collisionMessages->clear();
+
+}
+
+void CForagingLoopFunctions::WriteSummaryMessages() {
+}
+
+void CForagingLoopFunctions::FlushOutputStreams() {
+  TraceOutput << std::flush;
+  CollisionOutput << std::flush;
+  SummaryOutput << std::flush;
+}
+
+
 void CForagingLoopFunctions::PrePhysicsEngineStep() {
   /* Logic to pick and drop food items */
   /*
@@ -155,15 +194,8 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     CFootBotEntity& cFootBot = *any_cast<CFootBotEntity*>(it->second);
     CFootBotForaging& cController = dynamic_cast<CFootBotForaging&>(cFootBot.GetControllableEntity().GetController());
 
-    /* Write stored trace messages of the foot-bot */
-    std::vector<CTraceMessage*> *cTraceMessages = cController.GetTraceMessages();
-    for (std::vector<CTraceMessage*>::iterator sit = cTraceMessages->begin();
-	 sit != cTraceMessages->end();
-	 ++sit) {
-      TraceOutput << (*sit)->Format(Space().GetSimulationClock()-1)  << std::endl;
-    }
-    cTraceMessages->clear();
-
+    WriteTraceMessages(&cFootBot, &cController);
+    WriteCollisionMessages(&cFootBot, &cController);
     /* Count how many foot-bots are in which state */
     if(! cController.IsResting()) ++unWalkingFBs;
     else ++unRestingFBs;
@@ -232,8 +264,9 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	    << CollectedFood << "\t"
 	    << Energy << std::endl;
   */
-  /* Flush output */
-  TraceOutput << std::flush;
+
+  WriteSummaryMessages();
+  FlushOutputStreams();
 }
 
 /****************************************/
