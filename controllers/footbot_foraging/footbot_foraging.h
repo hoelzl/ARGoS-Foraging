@@ -13,6 +13,8 @@
 
 // Definition of the state enumeration.
 #include "state.h"
+// Definition of the ground sensor result.
+#include "ground.h"
 // Support for generating runtime traces. 
 #include "trace_message.h"
 // Definition of the CCI_Controller class. 
@@ -112,8 +114,8 @@ class CFootBotForaging : public CCI_Controller {
     EState State;
     EState PreviousState;
 
-    // True when the robot is in the nest 
-    bool InNest;
+    // Information obtained from the ground sensors
+    EGroundSensorInfo GroundSensorInfo;
 
     // Current probability to switch from resting to exploring 
     Real RestToExploreMean;
@@ -170,6 +172,21 @@ class CFootBotForaging : public CCI_Controller {
   //  the function could have been omitted. It's here just for completeness.
   virtual void Destroy() {}
 
+  // Returns true if the robot is currently on empty ground.
+  inline bool IsOverEmptyGround() const {
+    return StateData.GroundSensorInfo == OVER_EMPTY_GROUND;
+  }
+
+  // Returns true if the robot is currently over a food item.
+  inline bool IsOverFoodItem() const {
+    return StateData.GroundSensorInfo == OVER_FOOD_ITEM;
+  }
+
+  // Returns true if the robot is currently in the nest.
+  inline bool IsOverNest() const {
+    return StateData.GroundSensorInfo == OVER_NEST;
+  }
+
   //  Returns true if the robot is currently exploring.
   inline bool IsExploring() const {
     return StateData.State == EXPLORING;
@@ -178,6 +195,11 @@ class CFootBotForaging : public CCI_Controller {
   //  Returns true if the robot is currently resting.
   inline bool IsResting() const {
     return StateData.State == RESTING;
+  }
+
+  // Returns true if the robot is picking up a food item.
+  inline bool IsPickingUpFoodItem() const {
+    return StateData.State == PICKING_UP_ITEM;
   }
 
   //  Returns true if the robot is currently returning to the nest.
@@ -211,6 +233,9 @@ class CFootBotForaging : public CCI_Controller {
   }
 
  private:
+
+  // Evaluates the information obtained from the ground sensors
+  void EvaluateGroundSensorInfo();
 
   // Updates the state information.
   // In pratice, it sets the InNest flag.  Future, more

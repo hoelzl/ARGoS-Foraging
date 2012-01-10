@@ -82,11 +82,14 @@ void CForagingLoopFunctions::Reset() {
   CollisionOutput.close();
   SummaryOutput.close();
   //  Open the output streams, erasing their contents 
-  TraceOutput.open(strTraceOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-  CollisionOutput.open(strCollisionOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
-  SummaryOutput.open(strSummaryOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
+  TraceOutput.open(strTraceOutput.c_str(),
+		   std::ios_base::trunc | std::ios_base::out);
+  CollisionOutput.open(strCollisionOutput.c_str(),
+		       std::ios_base::trunc | std::ios_base::out);
+  SummaryOutput.open(strSummaryOutput.c_str(),
+		     std::ios_base::trunc | std::ios_base::out);
 
-  //  Distribute uniformly the items in the environment 
+  //  Distribute the items uniformly in the environment 
   FoodPos.clear();
   for(UInt32 i = 0; i < InitialFoodItems; ++i) {
     FoodPos.push_back(CVector2(RNG->Uniform(ForagingArenaSideX),
@@ -191,6 +194,24 @@ void CForagingLoopFunctions::FlushOutputStreams() {
   SummaryOutput << std::flush;
 }
 
+void CForagingLoopFunctions::FindFoodItem(CFootBotForaging::SFoodData& foodData,
+					  CVector2 pos) {
+  for(size_t i = 0; i < FoodPos.size(); ++i) {
+    if((pos - FoodPos[i]).SquareLength() < FoodSquareRadius) {
+      // If so, we delete that item 
+      std::vector<CVector2>::iterator it = FoodPos.begin();
+      advance(it, i);
+      FoodPos.erase(it);
+      
+      // The foot-bot is now carrying an item 
+      foodData.HasFoodItem = true;
+      // The floor texture must be updated 
+      Floor->SetChanged();
+      return;
+    }
+  }
+  LOGERR << "Could not find food item!" << std::endl;
+}
 
 void CForagingLoopFunctions::PrePhysicsEngineStep() {
   //  Logic to pick and drop food items 
@@ -206,32 +227,32 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
     NextFoodDrop += RNG->Exponential(FoodDropMean);
     // Drop a new food item
     FoodPos.push_back(CVector2(RNG->Uniform(ForagingArenaSideX),
-				  RNG->Uniform(ForagingArenaSideY)));
+			       RNG->Uniform(ForagingArenaSideY)));
     // Update the floor texture
     Floor->SetChanged();
 
   }
-
-  //  Check whether a robot is on a food item 
+  
+  // Get a collection of all footbots
   CSpace::TAnyEntityMap& footbots = Space().GetEntitiesByType("footbot_entity");
   
   InitializeSummaryData();
   for(CSpace::TAnyEntityMap::iterator it = footbots.begin();
       it != footbots.end();
-       ++it) {
+      ++it) {
     //  Get handle to foot-bot entity and controller 
     CFootBotEntity& footBot = *any_cast<CFootBotEntity*>(it->second);
     CFootBotForaging& controller = dynamic_cast<CFootBotForaging&>(footBot.GetControllableEntity().GetController());
-
+    
     WriteTraceMessages(&footBot, &controller);
     WriteCollisionMessages(&footBot, &controller);
     AddSummaryData(&footBot, &controller);
     ClearAllMessages(&controller);
-
+    
     //  Get the position of the foot-bot on the ground as a CVector2 
     CVector2 pos;
     pos.Set(footBot.GetEmbodiedEntity().GetPosition().GetX(),
-	     footBot.GetEmbodiedEntity().GetPosition().GetY());
+	    footBot.GetEmbodiedEntity().GetPosition().GetY());
     //  Get food data 
     CFootBotForaging::SFoodData& foodData = controller.GetFoodData();
     //  The foot-bot has a food item 
@@ -244,36 +265,17 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
 	//  Drop the food item 
 	foodData.HasFoodItem = false;
 	++foodData.TotalFoodItems;
-
+	
 	//  The floor texture must be updated 
 	Floor->SetChanged();
       }
     }
     else {
-      // The foot-bot has no food item 
-      // Check whether the foot-bot is out of the nest 
-      if(pos.GetX() > -1.0f) {
-	// Check whether the foot-bot is on a food item 
-	bool done = false;
-	for(size_t i = 0; i < FoodPos.size() && !done; ++i) {
-	  if((pos - FoodPos[i]).SquareLength() < FoodSquareRadius) {
-	    // If so, we delete that item 
-	    std::vector<CVector2>::iterator it = FoodPos.begin();
-	    advance(it, i);
-	    FoodPos.erase(it);
-
-	    // The foot-bot is now carrying an item 
-	    foodData.HasFoodItem = true;
-	    // The floor texture must be updated 
-	    Floor->SetChanged();
-	    // We are done 
-	    done = true;
-	  }
-	}
-      }
+      if (controller.IsPickingUpFoodItem())
+	FindFoodItem(foodData, pos);
     }
   }
-
+  
   WriteSummaryOutput();
   FlushOutputStreams();
 }

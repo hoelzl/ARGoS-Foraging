@@ -1,3 +1,7 @@
+//  AUTHORS: Carlo Pinciroli <cpinciro@ulb.ac.be>
+//           Matthias Hölzl <tc@xantira.com>
+// 
+//  An example foraging controller for the foot-bot.
 //  Include the controller definition 
 #include "footbot_foraging.h"
 //  Function definitions for XML parsing 
@@ -76,7 +80,7 @@ void CFootBotForaging::SStateData::Init(TConfigurationNode& t_node) {
 
 void CFootBotForaging::SStateData::Reset() {
    State = RESTING;
-   InNest = true;
+   GroundSensorInfo = OVER_EMPTY_GROUND;
    WakeUpTime = 0;
    TimeRested = 0;
    TimeSearchingForPlaceInNest = 0;
@@ -141,7 +145,8 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
       StateData.Init(GetNode(t_node, "state"));
    }
    catch(CARGoSException& ex) {
-      THROW_ARGOSEXCEPTION_NESTED("Error initializing the foot-bot foraging controller for robot \"" << GetRobot().GetRobotId() << "\"", ex);
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing the foot-bot foraging controller for robot \""
+				  << GetRobot().GetRobotId() << "\"", ex);
    }
    // Initialize other stuff
    // Create a random number generator. We use the 'argos' category so
@@ -202,11 +207,10 @@ void CFootBotForaging::Reset() {
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-void CFootBotForaging::UpdateState() {
-   // Reset state flags 
-   StateData.InNest = false;
+void CFootBotForaging::EvaluateGroundSensorInfo() {
    // Read stuff from the ground sensor 
-   const CCI_FootBotMotorGroundSensor::TReadings& tGroundReads = Ground->GetReadings();
+   const CCI_FootBotMotorGroundSensor::TReadings& groundReads = Ground->GetReadings();
+   StateData.GroundSensorInfo = OVER_EMPTY_GROUND;
 
    // You can say whether you are in the nest by checking the ground
    // sensor placed close to the wheel motors. It returns a value
@@ -215,15 +219,28 @@ void CFootBotForaging::UpdateState() {
    // the robot is on a gray area.  The foot-bot has 4 sensors like
    // this, two in the front (corresponding to readings 0 and 1) and
    // two in the back (corresponding to reading 2 and 3).  Here we
-   // want the back sensors (readings 2 and 3) to tell us whether we
-   // are on gray: if so, the robot is completely in the nest,
-   // otherwise it's outside.
-   if(tGroundReads[2].Value > 0.25f &&
-      tGroundReads[2].Value < 0.75f &&
-      tGroundReads[3].Value > 0.25f &&
-      tGroundReads[3].Value < 0.75f) {
-      StateData.InNest = true;
+   // first check whether all sensor shows black; if so we assume that
+   // we are over a food item that we can pick up.  Otherwise we want
+   // the back sensors (readings 2 and 3) to tell us whether we are on
+   // a black, gray or white surface: if so, the robot is completely
+   // in the nest, otherwise it's over empty ground.
+
+   if (groundReads[0].Value <= 0.25f &&
+       groundReads[1].Value <= 0.25f &&
+       groundReads[2].Value <= 0.25f &&
+       groundReads[3].Value <= 0.25f) {
+     StateData.GroundSensorInfo = OVER_FOOD_ITEM;
+   } 
+   else if (groundReads[2].Value > 0.25 && 
+       groundReads[2].Value <= 0.75f &&
+       groundReads[3].Value > 0.25 && 
+       groundReads[3].Value <= 0.75f) {
+     StateData.GroundSensorInfo = OVER_NEST;
    }
+}
+
+void CFootBotForaging::UpdateState() {
+  EvaluateGroundSensorInfo();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -319,7 +336,8 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& heading) {
 
   case SWheelTurningParams::SOFT_TURN: {
     // Both wheels go straight, but one is faster than the other
-    Real fSpeedFactor = (WheelTurningParams.HardTurnOnAngleThreshold - Abs(cHeadingAngle)) / WheelTurningParams.HardTurnOnAngleThreshold;
+    Real fSpeedFactor = (WheelTurningParams.HardTurnOnAngleThreshold - Abs(cHeadingAngle)) /
+      WheelTurningParams.HardTurnOnAngleThreshold;
     fSpeed1 = fBaseAngularWheelSpeed - fBaseAngularWheelSpeed * (1.0 - fSpeedFactor);
     fSpeed2 = fBaseAngularWheelSpeed + fBaseAngularWheelSpeed * (1.0 - fSpeedFactor);
     break;
@@ -366,6 +384,10 @@ void CFootBotForaging::StartExploring() {
 void CFootBotForaging::PickUpItem() {
   if (StateData.State == PICKING_UP_ITEM) {
     LOGERR << "Trying to pick up an item when already in PICKING_UP_ITEM"
+	   << std::endl;
+  }
+  if (FoodData.HasFoodItem) {
+    LOGERR << "Trying to pick up an item while already carrying one."
 	   << std::endl;
   }
   StateData.SaveState();
@@ -425,9 +447,8 @@ void CFootBotForaging::StartResting() {
 
 void CFootBotForaging::Explore() {
   // This should be implemented differently: check whether we are on a
-  // food item, and if so, pick it up.  Right now the loop function
-  // sets HasFoodItem, which is totally wrong. --tc
-  if (FoodData.HasFoodItem) {
+  // food item, and if so, pick it up.
+  if (IsOverFoodItem()) {
     PickUpItem();
     return;
   }
@@ -437,7 +458,7 @@ void CFootBotForaging::Explore() {
     CVector2 diffusion = DiffusionVector(collision);
     // If we are in the nest, we combine antiphototaxis with obstacle
     // avoidance. Outside the nest, we just use the diffusion vector
-    if(StateData.InNest) {
+    if(IsOverNest()) {
       // The vector returned by CalculateVectorToLight() points to the
       // light. Thus, the minus sign is because we want to go away
       // from the light.
@@ -457,7 +478,7 @@ void CFootBotForaging::Explore() {
 
 void CFootBotForaging::ReturnToNest() {
   // Are we in the nest?
-  if(StateData.InNest) {
+  if(IsOverNest()) {
     DropItem();
   }
   else {

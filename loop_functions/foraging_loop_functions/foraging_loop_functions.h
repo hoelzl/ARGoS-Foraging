@@ -68,6 +68,8 @@ class CForagingLoopFunctions : public CLoopFunctions {
   
   // Summary of all events that occurred.
   std::vector<UInt32> AggregatedEvents;
+
+  void FindFoodItem(CFootBotForaging::SFoodData& foodData, CVector2 pos);
 };
 
 #endif
