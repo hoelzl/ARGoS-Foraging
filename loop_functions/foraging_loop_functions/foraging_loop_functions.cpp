@@ -260,7 +260,7 @@ void CForagingLoopFunctions::PrePhysicsEngineStep() {
       //  Check whether the foot-bot is in the nest 
       // This is terribly wrong!  Dropping of the food item should be
       // performed by the robot! --tc
-      if(pos.GetX() < -1.0f) {
+      if(controller.IsOverNest()) {
 	//  Place a new food item on the ground 
 	//  Drop the food item 
 	foodData.HasFoodItem = false;

@@ -115,6 +115,7 @@ class CFootBotForaging : public CCI_Controller {
     EState PreviousState;
 
     // Information obtained from the ground sensors
+    EGroundSensorInfo PreviousGroundSensorInfo;
     EGroundSensorInfo GroundSensorInfo;
 
     // Current probability to switch from resting to exploring 
@@ -174,7 +175,8 @@ class CFootBotForaging : public CCI_Controller {
 
   // Returns true if the robot is currently on empty ground.
   inline bool IsOverEmptyGround() const {
-    return StateData.GroundSensorInfo == OVER_EMPTY_GROUND;
+    return
+      StateData.GroundSensorInfo == OVER_EMPTY_GROUND;
   }
 
   // Returns true if the robot is currently over a food item.
@@ -210,6 +212,11 @@ class CFootBotForaging : public CCI_Controller {
   //  Returns the food data
   inline SFoodData& GetFoodData() {
     return FoodData;
+  }
+
+  // Returns true if the robot is currently carrying a food item
+  inline bool IsCarryingFood() {
+    return FoodData.HasFoodItem;
   }
 
   //  Returns the Id

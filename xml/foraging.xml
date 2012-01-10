@@ -43,7 +43,7 @@
                        soft_turn_angle_threshold="70"
                        no_turn_angle_threshold="10"
                        max_speed="10" />
-        <state rest_to_explore_mean="20"
+        <state rest_to_explore_mean="50"
                minimum_resting_time="1"
                minimum_search_for_place_in_nest_time="50">
 	</state>

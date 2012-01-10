@@ -80,6 +80,7 @@ void CFootBotForaging::SStateData::Init(TConfigurationNode& t_node) {
 
 void CFootBotForaging::SStateData::Reset() {
    State = RESTING;
+   PreviousGroundSensorInfo = OVER_EMPTY_GROUND;
    GroundSensorInfo = OVER_EMPTY_GROUND;
    WakeUpTime = 0;
    TimeRested = 0;
@@ -210,6 +211,7 @@ void CFootBotForaging::Reset() {
 void CFootBotForaging::EvaluateGroundSensorInfo() {
    // Read stuff from the ground sensor 
    const CCI_FootBotMotorGroundSensor::TReadings& groundReads = Ground->GetReadings();
+   StateData.PreviousGroundSensorInfo = StateData.GroundSensorInfo;
    StateData.GroundSensorInfo = OVER_EMPTY_GROUND;
 
    // You can say whether you are in the nest by checking the ground
@@ -230,11 +232,23 @@ void CFootBotForaging::EvaluateGroundSensorInfo() {
        groundReads[2].Value <= 0.25f &&
        groundReads[3].Value <= 0.25f) {
      StateData.GroundSensorInfo = OVER_FOOD_ITEM;
-   } 
-   else if (groundReads[2].Value > 0.25 && 
-       groundReads[2].Value <= 0.75f &&
-       groundReads[3].Value > 0.25 && 
-       groundReads[3].Value <= 0.75f) {
+   }
+
+   int sensorReading = 0;
+   if (groundReads[0].Value > 0.25 && groundReads[0].Value <= 0.75f) {
+     sensorReading += 1.0;
+   }
+   if (groundReads[1].Value > 0.25 && groundReads[0].Value <= 0.75f) {
+     sensorReading += 1.0;
+   }
+   if (groundReads[2].Value > 0.25 && groundReads[0].Value <= 0.75f) {
+     sensorReading += 1.0;
+   }
+   if (groundReads[3].Value > 0.25 && groundReads[0].Value <= 0.75f) {
+     sensorReading += 1.0;
+   }
+   // std::cout << "Sensor Reading: " << sensorReading << std::endl;
+   if (sensorReading >= 3) {
      StateData.GroundSensorInfo = OVER_NEST;
    }
 }
@@ -280,16 +294,19 @@ CVector2 CFootBotForaging::DiffusionVector(bool& collision) {
   // If the angle of the vector is small enough and the closest
   // obstacle is far enough, ignore the vector and go straight,
   // otherwise return it.
-  if(DiffusionParams.GoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(diffusionVector.Angle()) &&
+  if(DiffusionParams.GoStraightAngleRange
+     .WithinMinBoundIncludedMaxBoundIncluded(diffusionVector.Angle()) &&
      diffusionVector.Length() < DiffusionParams.Delta ) {
     collision = false;
-    return CVector2::X;
+    // return CVector2::X;
   }
   else {
     collision = true;
-    diffusionVector.Normalize();
-    return -diffusionVector;
+    // diffusionVector.Normalize();
+    // return -diffusionVector;
   }
+  diffusionVector.Normalize();
+  return -diffusionVector;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -448,7 +465,7 @@ void CFootBotForaging::StartResting() {
 void CFootBotForaging::Explore() {
   // This should be implemented differently: check whether we are on a
   // food item, and if so, pick it up.
-  if (IsOverFoodItem()) {
+  if (IsOverFoodItem() && !IsCarryingFood()) {
     PickUpItem();
     return;
   }
@@ -462,9 +479,18 @@ void CFootBotForaging::Explore() {
       // The vector returned by CalculateVectorToLight() points to the
       // light. Thus, the minus sign is because we want to go away
       // from the light.
-      SetWheelSpeedsFromVector
-	(WheelTurningParams.MaxSpeed *
-	 (diffusion - 0.5 * CalculateVectorToLight()));
+      if (collision) {
+	CRange<Real> range(0.4f, 0.9f);
+	double r = RNG->Uniform(range);
+	SetWheelSpeedsFromVector(WheelTurningParams.MaxSpeed *
+				 (r * diffusion + (1.0 - r) * - CalculateVectorToLight()));
+      }
+      else {
+	CRange<Real> range(0.1f, 0.3f);
+	double r = RNG->Uniform(range);
+	SetWheelSpeedsFromVector(WheelTurningParams.MaxSpeed *
+				 (r * diffusion + (1.0 - r) * - CalculateVectorToLight()));
+      }
     }
     else {
       // Use the diffusion vector only
@@ -483,9 +509,19 @@ void CFootBotForaging::ReturnToNest() {
   }
   else {
     bool collision;
-    SetWheelSpeedsFromVector
-      (WheelTurningParams.MaxSpeed * 0.5 *
-       (DiffusionVector(collision) + CalculateVectorToLight()));
+    CVector2 diffusion = DiffusionVector(collision);
+    if (collision) {
+      CRange<Real> range(0.2f, 0.7f);
+      double r = RNG->Uniform(range);
+      SetWheelSpeedsFromVector(WheelTurningParams.MaxSpeed *
+			       (r * diffusion + (1.0 - r) * CalculateVectorToLight()));
+    }
+    else {
+      CRange<Real> range(0.0f, 0.2f);
+      double r = RNG->Uniform(range);
+      SetWheelSpeedsFromVector(WheelTurningParams.MaxSpeed *
+			       (r * diffusion + (1.0 - r) * CalculateVectorToLight()));
+    }
   }
 }
 
