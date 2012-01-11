@@ -7,7 +7,7 @@
 <!-- Experiment number: 7 				-->
 <!-- Arena size:        4 				-->
 <!-- Experiment length: 36000 				-->
-<!-- Number of robots:  40 				-->
+<!-- Number of robots:  20 				-->
 <!-- Output files:      results/007-foraging.csv 	-->
 <!--                    results/007-collisions.csv 	-->
 <!--                    results/007-summary.csv 	-->
@@ -21,7 +21,7 @@
     <system threads="0" />
     <experiment length="36000"
                 ticks_per_second="10"
-                random_seed="123" />
+                random_seed="126" />
   </framework>
 
   <!-- *************** -->
@@ -128,7 +128,7 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="-1,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="40" max_trials="100">
+      <entity quantity="20" max_trials="100">
         <foot-bot id="fb"
                   controller="ffc" />
       </entity>

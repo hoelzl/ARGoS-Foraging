@@ -7,7 +7,7 @@
 <!-- Experiment number: 8 				-->
 <!-- Arena size:        4 				-->
 <!-- Experiment length: 36000 				-->
-<!-- Number of robots:  40 				-->
+<!-- Number of robots:  20 				-->
 <!-- Output files:      results/008-foraging.csv 	-->
 <!--                    results/008-collisions.csv 	-->
 <!--                    results/008-summary.csv 	-->
@@ -21,7 +21,7 @@
     <system threads="0" />
     <experiment length="36000"
                 ticks_per_second="10"
-                random_seed="124" />
+                random_seed="126" />
   </framework>
 
   <!-- *************** -->
@@ -29,7 +29,7 @@
   <!-- *************** -->
   <controllers>
 
-    <footbot_foraging_controller id="ffc"
+    <footbot_foraging_controller_nr id="ffc"
                                  library="build/controllers/footbot_foraging/libfootbot_foraging.so">
       <actuators>
         <footbot_wheels implementation="default" />
@@ -54,7 +54,7 @@
                minimum_search_for_place_in_nest_time="50">
 	</state>
       </parameters>
-    </footbot_foraging_controller>
+    </footbot_foraging_controller_nr>
 
   </controllers>
 
@@ -128,7 +128,7 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="-1,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="40" max_trials="100">
+      <entity quantity="20" max_trials="100">
         <foot-bot id="fb"
                   controller="ffc" />
       </entity>

@@ -159,6 +159,10 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
+bool CFootBotForaging::IsOverNest() {
+  return StateData.GroundSensorInfo == OVER_NEST;
+}
+
 void CFootBotForaging::ControlStep() {
   UpdateState();
   switch(StateData.State) {
@@ -456,7 +460,8 @@ void CFootBotForaging::StartResting() {
   LEDs->SetAllColors(CColor::RED);
   TraceMessages.push_back(new CRestTrace(Id));
   Wheels->SetLinearVelocity(0.0f, 0.0f);
-  StateData.SetNewWakeUpTime(RNG->Exponential(StateData.RestToExploreMean));
+  Real restingTime = RNG->Exponential(StateData.RestToExploreMean);
+  StateData.SetNewWakeUpTime(restingTime);
 }
 
 ////////////////////////////////////////////////////////////////////////

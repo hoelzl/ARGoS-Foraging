@@ -185,9 +185,7 @@ class CFootBotForaging : public CCI_Controller {
   }
 
   // Returns true if the robot is currently in the nest.
-  inline bool IsOverNest() const {
-    return StateData.GroundSensorInfo == OVER_NEST;
-  }
+  virtual bool IsOverNest(); 
 
   //  Returns true if the robot is currently exploring.
   inline bool IsExploring() const {
@@ -239,7 +237,7 @@ class CFootBotForaging : public CCI_Controller {
     return &CollisionMessages;
   }
 
- private:
+ protected:
 
   // Evaluates the information obtained from the ground sensors
   void EvaluateGroundSensorInfo();
@@ -282,18 +280,18 @@ class CFootBotForaging : public CCI_Controller {
   void StartResting();
 
   // Executes the exploring state.
-  void Explore();
+  virtual void Explore();
 
   // Executes the return to nest state.
-  void ReturnToNest();
+  virtual void ReturnToNest();
 
   // Executes the search for resting place state.
-  void SearchForRestingPlace();
+  virtual void SearchForRestingPlace();
 
   // Executes the resting state.
-  void Rest();
+  virtual void Rest();
 
- private:
+ protected:
 
   // Pointer to the foot-bot wheels actuator 
   CCI_FootBotWheelsActuator*  Wheels;

@@ -21,7 +21,7 @@
     <system threads="0" />
     <experiment length="36000"
                 ticks_per_second="10"
-                random_seed="125" />
+                random_seed="124" />
   </framework>
 
   <!-- *************** -->

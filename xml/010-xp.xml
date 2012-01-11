@@ -5,9 +5,9 @@
 <!-- ************************************************** -->
 
 <!-- Experiment number: 10 				-->
-<!-- Arena size:        8 				-->
+<!-- Arena size:        4 				-->
 <!-- Experiment length: 36000 				-->
-<!-- Number of robots:  40 				-->
+<!-- Number of robots:  20 				-->
 <!-- Output files:      results/010-foraging.csv 	-->
 <!--                    results/010-collisions.csv 	-->
 <!--                    results/010-summary.csv 	-->
@@ -21,7 +21,7 @@
     <system threads="0" />
     <experiment length="36000"
                 ticks_per_second="10"
-                random_seed="123" />
+                random_seed="127" />
   </framework>
 
   <!-- *************** -->
@@ -29,7 +29,7 @@
   <!-- *************** -->
   <controllers>
 
-    <footbot_foraging_controller id="ffc"
+    <footbot_foraging_controller_nr id="ffc"
                                  library="build/controllers/footbot_foraging/libfootbot_foraging.so">
       <actuators>
         <footbot_wheels implementation="default" />
@@ -54,7 +54,7 @@
                minimum_search_for_place_in_nest_time="50">
 	</state>
       </parameters>
-    </footbot_foraging_controller>
+    </footbot_foraging_controller_nr>
 
   </controllers>
 
@@ -84,51 +84,51 @@
            pixels_per_meter="50" />
 
     <box id="wall_north"
-         position="0,4,0.25"
+         position="0,2,0.25"
          orientation="0,0,0"
-         size="8,0.1,0.5"
+         size="4,0.1,0.5"
          movable="false" />
     <box id="wall_south"
-         position="0,-4,0.25"
+         position="0,-2,0.25"
          orientation="0,0,0"
-         size="8,0.1,0.5"
+         size="4,0.1,0.5"
          movable="false" />
     <box id="wall_east"
-         position="4,0,0.25"
+         position="2,0,0.25"
          orientation="0,0,0"
-         size="0.1,8,0.5"
+         size="0.1,4,0.5"
          movable="false" />
     <box id="wall_west"
-         position="-4,0,0.25"
+         position="-2,0,0.25"
          orientation="0,0,0"
-         size="0.1,8,0.5"
+         size="0.1,4,0.5"
          movable="false" />
 
     <light id="light_1"
-           position="-4,-3,1.0"
+           position="-2,-1.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0" />
     <light id="light_2"
-           position="-4,-1,1.0"
+           position="-2,-0.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0" />
     <light id="light_3"
-           position="-4,1,1.0"
+           position="-2,0.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0" />
     <light id="light_4"
-           position="-4,3,1.0"
+           position="-2,1.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0" />
 
     <distribute>
-      <position method="uniform" min="-4,-4,0" max="-3,4,0" />
+      <position method="uniform" min="-2,-2,0" max="-1,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="40" max_trials="100">
+      <entity quantity="20" max_trials="100">
         <foot-bot id="fb"
                   controller="ffc" />
       </entity>

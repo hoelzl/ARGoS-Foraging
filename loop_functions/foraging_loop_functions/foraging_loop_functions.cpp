@@ -197,7 +197,11 @@ void CForagingLoopFunctions::FlushOutputStreams() {
 void CForagingLoopFunctions::FindFoodItem(CFootBotForaging::SFoodData& foodData,
 					  CVector2 pos) {
   for(size_t i = 0; i < FoodPos.size(); ++i) {
-    if((pos - FoodPos[i]).SquareLength() < FoodSquareRadius) {
+    // TODO: I've added a random epsilon (0.1), since the robots and
+    // the loop function don't exactly agree when a robot is on top of
+    // a food item.  Figure out why this is the case and fix it
+    // properly. --tc
+    if((pos - FoodPos[i]).SquareLength() <= FoodSquareRadius + 0.1) {
       // If so, we delete that item 
       std::vector<CVector2>::iterator it = FoodPos.begin();
       advance(it, i);

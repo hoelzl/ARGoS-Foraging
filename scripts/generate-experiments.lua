@@ -26,6 +26,7 @@ default_substitutions = {
    ["%arena-size%"]              = "4",
    ["%experiment-length%"]       = "36000",
    ["%random-seed%"]             = "123",
+   ["%foraging-controller-tag%"] = "footbot_foraging_controller",
    ["%foraging-controller%"]     = "libfootbot_foraging.so",
    ["%user-function%"]           = "libforaging_loop_functions.so",
    ["%trace-output%"]            = "results/1-foraging.csv",
@@ -132,24 +133,24 @@ function files_for_experiment (number)
    return tab
 end
 
-function build_experiment_table (number_of_robots, arena_size,
-				 experiment_length, random_seed, controller)
+function build_experiment_table (number_of_robots, arena_size, experiment_length,
+				 random_seed, controller_tag)
    return table.merge(default_substitutions,
 		      square_arena(arena_size),
 		      { ["%experiment-length%"]       = experiment_length,
 			["%random-seed%"]             = random_seed,
-			["%foraging-controller%"]     = controller,
+			["%foraging-controller-tag%"] = controller_tag,
 			["%number-of-robots%"]        = number_of_robots
 		      })
 end
 
--- table.print(build_experiment_table(20, 4, 3600, 123, "libfootbot_foraging.so"))
+-- table.print(build_experiment_table(20, 4, 3600, 123, "footbot_foraging_controller"))
 
 function build_xml_file (substitution_table)
    return (string.gsub(xml_template, "%%[^%%]+%%", substitution_table))
 end
 
--- print(build_xml_file(build_experiment_table(20, 4, 3600, 123, "libfootbot_foraging.so")))
+-- print(build_xml_file(build_experiment_table(20, 4, 3600, 123, "footbot_foraging_controller")))
 
 function write_xml_file_for_experiment (file_prefix, substitution_table)
    local file_name = string.format("%s/%03d-xp.xml", 
@@ -160,7 +161,7 @@ function write_xml_file_for_experiment (file_prefix, substitution_table)
    file:close()
 end
 
--- write_xml_file_for_experiment("/tmp/", build_experiment_table(1, 20, 4, 3600, 123, "libfootbot_foraging.so"))
+-- write_xml_file_for_experiment("/tmp/", build_experiment_table(1, 20, 4, 3600, 123, "footbot_foraging_controller"))
 
 function write_xml_file_for (exps)
    -- Do some sanity checks first and assign numbers

@@ -30,7 +30,7 @@ xml_template = [==[
   <!-- *************** -->
   <controllers>
 
-    <footbot_foraging_controller id="ffc"
+    <%foraging-controller-tag% id="ffc"
                                  library="build/controllers/footbot_foraging/%foraging-controller%">
       <actuators>
         <footbot_wheels implementation="default" />
@@ -55,7 +55,7 @@ xml_template = [==[
                minimum_search_for_place_in_nest_time="50">
 	</state>
       </parameters>
-    </footbot_foraging_controller>
+    </%foraging-controller-tag%>
 
   </controllers>
 

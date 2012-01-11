@@ -21,7 +21,7 @@
     <system threads="0" />
     <experiment length="36000"
                 ticks_per_second="10"
-                random_seed="124" />
+                random_seed="123" />
   </framework>
 
   <!-- *************** -->
@@ -29,7 +29,7 @@
   <!-- *************** -->
   <controllers>
 
-    <footbot_foraging_controller id="ffc"
+    <footbot_foraging_controller_nr id="ffc"
                                  library="build/controllers/footbot_foraging/libfootbot_foraging.so">
       <actuators>
         <footbot_wheels implementation="default" />
@@ -54,7 +54,7 @@
                minimum_search_for_place_in_nest_time="50">
 	</state>
       </parameters>
-    </footbot_foraging_controller>
+    </footbot_foraging_controller_nr>
 
   </controllers>
 
