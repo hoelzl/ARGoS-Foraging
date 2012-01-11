@@ -6,7 +6,7 @@
 
 <!-- Experiment number: 11 				-->
 <!-- Arena size:        8 				-->
-<!-- Experiment length: 3600 				-->
+<!-- Experiment length: 36000 				-->
 <!-- Number of robots:  40 				-->
 <!-- Output files:      results/011-foraging.csv 	-->
 <!--                    results/011-collisions.csv 	-->
@@ -19,7 +19,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="3600"
+    <experiment length="36000"
                 ticks_per_second="10"
                 random_seed="124" />
   </framework>
