@@ -1,3 +1,14 @@
+summary_template = [==[
+Experiment number: %experiment-number%
+Controller type:   %foraging-controller-tag%
+Arena size:        %arena-size%
+Number of robots:  %number-of-robots%
+Experiment length: %experiment-length%
+Output files:      %trace-output%
+                   %collision-output%
+                   %summary-output%
+]==]
+
 xml_template = [==[
 <?xml version="1.0" ?>
 
@@ -6,9 +17,10 @@ xml_template = [==[
 <!-- ************************************************** -->
 
 <!-- Experiment number: %experiment-number% 				-->
+<!-- Controller type:   %foraging-controller-tag%	-->
 <!-- Arena size:        %arena-size% 				-->
-<!-- Experiment length: %experiment-length% 				-->
 <!-- Number of robots:  %number-of-robots% 				-->
+<!-- Experiment length: %experiment-length% 				-->
 <!-- Output files:      %trace-output% 	-->
 <!--                    %collision-output% 	-->
 <!--                    %summary-output% 	-->

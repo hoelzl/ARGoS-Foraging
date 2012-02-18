@@ -12,10 +12,10 @@ function file_exists (filename)
    end
 end
 
-if file_exists("xml-template.lua") then
-   dofile("xml-template.lua")
-elseif file_exists("scripts/xml-template.lua") then
-   dofile("scripts/xml-template.lua")
+if file_exists("lua-templates.lua") then
+   dofile("lua-templates.lua")
+elseif file_exists("scripts/lua-templates.lua") then
+   dofile("scripts/lua-templates.lua")
 else
    error("Cannot find the XML template")
 end
